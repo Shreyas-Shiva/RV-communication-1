@@ -1,0 +1,24 @@
+{
+  "name": "communiq",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "test": "npm --prefix frontend run test",
+    "lint": "npm --prefix frontend run lint",
+    "test:backend": "python -m pytest backend",
+    "test:all": "npm --prefix frontend run test && python -m pytest backend",
+    "check:branding": "node scripts/check_branding.mjs",
+    "check:keys": "node scripts/check_keys.mjs",
+    "setup:models": "node scripts/setup_models.mjs",
+    "setup:site": "node scripts/setup_site.mjs",
+    "audit": "python scripts/audit_codebase.py",
+    "export:review": "node scripts/review_kit.mjs export",
+    "import:review": "node scripts/review_kit.mjs import",
+    "train:sign": "node scripts/train_sign.mjs",
+    "prelaunch": "node scripts/prelaunch.mjs",
+    "verify:live": "node scripts/verify_live.mjs"
+  }
+}

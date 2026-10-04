@@ -1,0 +1,8 @@
+{
+  "makerName": "[FILL IN: Organization or Maker Name]",
+  "physicalAddress": "[FILL IN: Registered Address, City, State, Country, Postal Code]",
+  "contactEmail": "[FILL IN: contact@yourdomain.com]",
+  "governingLaw": "[FILL IN: e.g. Laws of India, State of Karnataka]",
+  "productionDomain": "[FILL IN: https://yourdomain.com]",
+  "apiDomain": "[FILL IN: https://api.yourdomain.com]"
+}

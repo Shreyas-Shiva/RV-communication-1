@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-cream: #FFF8EF;
+    --surface-white: #FFFFFF;
+    --color-teal: #0F8B8D;
+    --color-teal-dark: #0A6364;
+    --color-teal-light: #E2F3F3;
+    --color-amber: #FFB703;
+    --color-amber-light: #FFF4D6;
+    --color-green: #2E9E5B;
+    --color-green-light: #EBF7EF;
+    --color-emergency: #D62828;
+    --color-emergency-light: #FDE8E8;
+    --color-charcoal: #1F1B16;
+    --color-border: #E5DACF;
+    --color-muted: #5E564D;
+
+    --font-main: 'Nunito', 'Noto Sans Kannada', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  body {
+    background-color: var(--bg-cream);
+    color: var(--color-charcoal);
+    font-family: var(--font-main);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* High contrast mode support */
+  body.high-contrast {
+    --bg-cream: #000000;
+    --surface-white: #121212;
+    --color-teal: #00FFFF;
+    --color-teal-light: #003333;
+    --color-amber: #FFFF00;
+    --color-amber-light: #333300;
+    --color-green: #00FF00;
+    --color-emergency: #FF3333;
+    --color-charcoal: #FFFFFF;
+    --color-border: #FFFFFF;
+    --color-muted: #E0E0E0;
+    background-color: #000000;
+    color: #FFFFFF;
+  }
+
+  /* Dark mode support */
+  body.dark-mode {
+    --bg-cream: #181512;
+    --surface-white: #24201A;
+    --color-teal: #1DBCC0;
+    --color-teal-dark: #128285;
+    --color-teal-light: #1A3233;
+    --color-amber: #FFC024;
+    --color-amber-light: #3D3114;
+    --color-green: #38BD6E;
+    --color-green-light: #163622;
+    --color-emergency: #F04444;
+    --color-emergency-light: #421818;
+    --color-charcoal: #F5EFEB;
+    --color-border: #3D352B;
+    --color-muted: #B8ADA0;
+    background-color: var(--bg-cream);
+    color: var(--color-charcoal);
+  }
+
+  /* Respect reduced motion universally */
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Accessible focus indicators for keyboard navigation */
+  :focus-visible {
+    outline: 3px solid var(--color-teal);
+    outline-offset: 3px;
+  }
+}
+
+/* Custom button classes respecting rect radius 10 to 12px (no pill shapes) */
+.btn-communiq {
+  border-radius: 12px;
+  border-width: 2px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 120ms ease, background-color 120ms ease, border-color 120ms ease;
+}
+
+.btn-communiq:active {
+  transform: scale(0.97);
+}
+
+/* Card radius standard 16px */
+.card-communiq {
+  border-radius: 16px;
+  border-width: 2px;
+  border-color: var(--color-border);
+  background-color: var(--surface-white);
+  box-shadow: 0 2px 6px rgba(31, 27, 22, 0.06);
+}
