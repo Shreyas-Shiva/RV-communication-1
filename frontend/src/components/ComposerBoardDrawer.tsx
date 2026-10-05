@@ -189,6 +189,7 @@ export const ComposerBoardDrawer: React.FC<ComposerBoardDrawerProps> = ({
             <button
               key={tok.id}
               type="button"
+              aria-label={text}
               onClick={() => handleAddToken(tok)}
               style={{ backgroundColor: pal.fill, borderColor: pal.border }}
               className="h-14 sm:h-16 p-1 rounded-xl border-2 flex flex-col items-center justify-center transition-transform hover:scale-102 active:scale-95 cursor-pointer shadow-2xs"

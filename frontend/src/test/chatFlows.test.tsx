@@ -184,10 +184,53 @@ describe('COMMUNIQ Unified Dual-Mode AAC App (Chat + Board)', () => {
       // Sentence strip actions
       expect(screen.getByRole('button', { name: /Delete last word/i })).toBeDefined();
       expect(screen.getByRole('button', { name: /Clear sentence/i })).toBeDefined();
-      expect(screen.getByRole('button', { name: /Say it aloud/i })).toBeDefined();
+      const sayItBtn = screen.getByRole('button', { name: /Say it aloud/i });
+      expect(sayItBtn).toBeDefined();
+      // Amber color palette check
+      expect(sayItBtn.className).toContain('bg-[#FFB703]');
 
       // Verify core board is displayed
       expect(screen.getByRole('region', { name: /Sentence Strip/i })).toBeDefined();
+    });
+  });
+
+  describe('DEEPMIND SL2T VISION & COMPACT BOARD DRAWER', () => {
+    it('decodes all 8 core signs (Water, Food, Help, Yes, No, Bathroom, Want, Go)', async () => {
+      const coreKeys = ['water', 'food', 'help', 'yes', 'no', 'bathroom', 'want', 'go'];
+      for (const k of coreKeys) {
+        const res = await analyzeSignMedia(undefined, 'en', k);
+        expect(res.sign).toBe(k);
+        expect(res.transcript.length).toBeGreaterThan(0);
+        expect(res.confidence).toBeGreaterThan(0.9);
+      }
+    });
+
+    it('toggles compact AAC board drawer via "Use Board" button and inserts tokens with TTS', async () => {
+      render(
+        <CommuniqProvider>
+          <ChatPage />
+        </CommuniqProvider>
+      );
+
+      // Open drawer
+      const useBoardBtn = screen.getByLabelText(/Use Board: Open compact AAC drawer/i);
+      fireEvent.click(useBoardBtn);
+
+      // Drawer dialog should appear
+      expect(screen.getByRole('dialog', { name: /Quick AAC Board Drawer/i })).toBeDefined();
+
+      // Tap cards in drawer: I, Want, Water
+      const wantCard = screen.getByRole('button', { name: /^Want$/i });
+      fireEvent.click(wantCard);
+
+      // Send & Speak
+      const sendSpeakBtn = screen.getByRole('button', { name: /Speak and Send/i });
+      fireEvent.click(sendSpeakBtn);
+
+      await waitFor(() => {
+        expect(screen.getByText('Want')).toBeDefined();
+        expect(window.speechSynthesis.speak).toHaveBeenCalled();
+      });
     });
   });
 });

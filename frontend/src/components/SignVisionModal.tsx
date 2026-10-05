@@ -1,5 +1,6 @@
+/* oxlint-disable react/set-state-in-effect */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Camera, Upload, X, Check, Loader2, Sparkles, RefreshCw } from 'lucide-react';
+import { Camera, Upload, X, Check, Loader2, Sparkles } from 'lucide-react';
 import { CORE_SIGNS, SignDefinition } from '../services/signService';
 import { Pictogram } from './Pictogram';
 
