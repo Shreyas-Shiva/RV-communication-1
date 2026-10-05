@@ -68,3 +68,45 @@ class ServiceStatusResponse(BaseModel):
     speechRecognition: Literal['working'] = "working"
     whisper: Literal['working', 'not_configured'] = "not_configured"
     activeProvider: str
+
+class SentenceOptionItem(BaseModel):
+    text: str = Field(..., max_length=300)
+    intent: Optional[str] = None
+    tone: Optional[str] = None
+    grammarChecked: bool = True
+    providerUsed: str = "local"
+
+class SentenceOptionsRequest(BaseModel):
+    item: Optional[str] = None
+    tray: Optional[List[str]] = None
+    language: str = Field(default="en-IN", max_length=16)
+    ageGroup: str = Field(default="adult", max_length=32)
+    tone: str = Field(default="polite", max_length=32)
+    wording: str = Field(default="neutral", max_length=32)
+    conversationContext: Optional[ConversationContext] = None
+
+class SentenceOptionsResponse(BaseModel):
+    options: List[SentenceOptionItem]
+    providerUsed: str
+    cached: bool = False
+
+class ContinueOptionItem(BaseModel):
+    text: str = Field(..., max_length=300)
+    kind: Literal['detail', 'follow_up', 'close', 'repair']
+    grammarChecked: bool = True
+    providerUsed: str = "local"
+
+class ContinueConversationRequest(BaseModel):
+    lastSentence: str = Field(..., max_length=500)
+    language: str = Field(default="en-IN", max_length=16)
+    ageGroup: str = Field(default="adult", max_length=32)
+    tone: str = Field(default="polite", max_length=32)
+    wording: str = Field(default="neutral", max_length=32)
+    scenario: Optional[str] = None
+    conversationContext: Optional[ConversationContext] = None
+
+class ContinueConversationResponse(BaseModel):
+    options: List[ContinueOptionItem]
+    repairOptions: List[ContinueOptionItem]
+    providerUsed: str
+    cached: bool = False

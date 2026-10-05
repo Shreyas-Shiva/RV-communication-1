@@ -54,11 +54,43 @@ export const en: Translations = {
   privacy: "Privacy Policy",
   terms: "Terms of Use",
 
-  // Helper lines
+  // Helper lines - one short natural instruction per screen
   helperWhereAmI: "Where am I?",
   helperWhatCanISay: "What can I say?",
   helperWhatShouldITap: "What should I tap?",
   helperWhatHappensNext: "What happens next?",
+  homeInstruction: "Choose a card or start a conversation.",
+  communicateInstruction: "Tap a picture to speak or build a sentence.",
+  talkInstruction: "Take turns talking with someone.",
+  practiceInstruction: "Practice words and sentences at your own pace.",
+  myDayInstruction: "Review what you said and did today.",
+  settingsInstruction: "Adjust voices, display, and privacy.",
+  emergencyInstruction: "Tap for immediate urgent help.",
+
+  // New settings
+  speakOnTapLabel: "Speak the word when I tap a picture",
+  speakOnTapDesc: "Hear the word aloud right away when tapping any card.",
+  screenDensityLabel: "Screen density",
+  densityCompact: "Compact",
+  densityComfortable: "Comfortable",
+  densityLarge: "Large",
+  wordingForMeLabel: "Wording for me (Hindi)",
+  wordingNeutral: "Neutral (Gender-free)",
+  wordingMasculine: "Masculine (Pulling)",
+  wordingFeminine: "Feminine (Streeling)",
+
+  // Sentence Tray
+  sentenceTrayTitle: "Sentence Tray",
+  sayIt: "Say it",
+  makeItASentence: "Make it a sentence",
+  undo: "Undo",
+  trayFullNotice: "Tray is full (6 words maximum).",
+
+  // Continuation & You could say
+  youCouldSayTitle: "You could say",
+  moreIdeasTitle: "More ideas",
+  keepGoingTitle: "Keep going",
+  repairTitle: "Fix what I meant",
 
   // Home Screen
   childGreeting: "Hello friend! Let's talk together.",

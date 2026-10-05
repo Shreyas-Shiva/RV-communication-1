@@ -10,7 +10,11 @@ from app.schemas.context import (
     TextImprovementRequest,
     TextImprovementResponse,
     TranslationRequest,
-    TranslationResponse
+    TranslationResponse,
+    SentenceOptionsRequest,
+    SentenceOptionsResponse,
+    ContinueConversationRequest,
+    ContinueConversationResponse
 )
 from app.services.ai.manager import ai_manager
 
@@ -78,3 +82,33 @@ async def conversation_stream(
         yield f"event: done\ndata: {json.dumps({'complete': True})}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+@router.post("/sentence-options", response_model=SentenceOptionsResponse)
+async def sentence_options(req: SentenceOptionsRequest):
+    """
+    Returns validated complete grammatical sentence choices for an item or tray.
+    """
+    res = await ai_manager.get_sentence_options(
+        item=req.item,
+        tray=req.tray,
+        language=req.language,
+        age_group=req.ageGroup,
+        tone=req.tone,
+        wording=req.wording
+    )
+    return SentenceOptionsResponse(**res)
+
+@router.post("/continue", response_model=ContinueConversationResponse)
+async def continue_conversation(req: ContinueConversationRequest):
+    """
+    Returns contextual conversation continuation options: details, polite closings, and 1-tap repair lines.
+    """
+    res = await ai_manager.get_continue_options(
+        last_sentence=req.lastSentence,
+        language=req.language,
+        age_group=req.ageGroup,
+        tone=req.tone,
+        wording=req.wording,
+        scenario=req.scenario
+    )
+    return ContinueConversationResponse(**res)

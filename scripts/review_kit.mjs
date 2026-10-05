@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,29 +34,20 @@ function parseAssets(content) {
 }
 
 function exportCsv() {
-  console.log('Exporting translation strings for human review...');
-  const content = fs.readFileSync(assetsFile, 'utf8');
-  const assets = parseAssets(content);
+  const isWindows = process.platform === 'win32';
+  const npxCmd = isWindows ? 'npx.cmd' : 'npx';
+  const comboScript = path.join(__dirname, 'export_review_combinations.ts');
 
-  const rows = [
-    'id,category,english,language,native_script,reviewed (yes/no),reviewer,notes'
-  ];
+  const result = spawnSync(npxCmd, ['tsx', comboScript], {
+    cwd: rootDir,
+    stdio: 'inherit',
+    shell: true
+  });
 
-  let unreviewedCount = 0;
-
-  for (const a of assets) {
-    // Kannada row
-    rows.push(`"${a.id}","${a.categoryId}","${a.en.replace(/"/g, '""')}","kn","${a.kn.replace(/"/g, '""')}","${a.reviewed ? 'yes' : 'no'}","",""`);
-    // Hindi row
-    rows.push(`"${a.id}","${a.categoryId}","${a.en.replace(/"/g, '""')}","hi","${a.hi.replace(/"/g, '""')}","${a.reviewed ? 'yes' : 'no'}","",""`);
-    if (!a.reviewed) unreviewedCount++;
+  if (result.status !== 0) {
+    console.error('Failed to export all review combinations via tsx.');
+    process.exit(result.status ?? 1);
   }
-
-  fs.writeFileSync(csvFile, '\uFEFF' + rows.join('\n'), 'utf8');
-  console.log(`Saved ${rows.length - 1} translation rows to: ${csvFile}`);
-  console.log(`Total Communication Assets: ${assets.length}`);
-  console.log(`Unreviewed Assets: ${unreviewedCount}`);
-  console.log('Reviewers can open translations_review.csv in Excel/Google Sheets, review, and re-import with "npm run import:review".\n');
 }
 
 function importCsv() {

@@ -1,153 +1,162 @@
 import React from 'react';
 import { useCommuniq } from '../hooks/useCommuniq';
-import { AlertTriangle, Settings as SettingsIcon, Globe, Star, Flame, Sparkles } from 'lucide-react';
-import { LanguageCode, UserMode } from '../translations';
+import { ScreenId } from './Navigation';
+import { LanguageCode } from '../translations';
+import { Settings as SettingsIcon, AlertCircle, Smile, GraduationCap, User } from 'lucide-react';
 
 interface HeaderProps {
-  currentScreenName: string;
+  currentScreen: ScreenId;
+  currentScreenName?: string;
   helperLine?: string;
+  onNavigate: (screen: ScreenId) => void;
   onOpenSettings: () => void;
+  onOpenProfileModal: () => void;
   onOpenEmergency: () => void;
-  onNavigateHome: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
+  currentScreen,
   currentScreenName,
-  helperLine,
+  onNavigate,
   onOpenSettings,
-  onOpenEmergency,
-  onNavigateHome
+  onOpenProfileModal,
+  onOpenEmergency
 }) => {
-  const { language, setLanguage, userMode, setUserMode, stars, streak, t } = useCommuniq();
+  const { language, setLanguage, userMode, t } = useCommuniq();
 
-  const handleNextLanguage = () => {
-    const cycle: LanguageCode[] = ['en', 'kn', 'hi'];
-    const nextIdx = (cycle.indexOf(language) + 1) % cycle.length;
-    setLanguage(cycle[nextIdx]);
-  };
+  const isChatActive = currentScreen === 'talk' || currentScreen === 'home';
+  const isBoardActive = currentScreen === 'communicate';
 
-  const handleNextMode = () => {
-    const modes: UserMode[] = ['child', 'student', 'adult'];
-    const nextIdx = (modes.indexOf(userMode) + 1) % modes.length;
-    setUserMode(modes[nextIdx]);
-  };
+  const languages: { code: LanguageCode; short: string; label: string }[] = [
+    { code: 'en', short: 'EN', label: 'English' },
+    { code: 'kn', short: 'KN', label: 'ಕನ್ನಡ' },
+    { code: 'hi', short: 'HI', label: 'हिन्दी' }
+  ];
 
-  const languageLabels: Record<LanguageCode, string> = {
-    en: 'English',
-    kn: 'ಕನ್ನಡ',
-    hi: 'हिन्दी',
-    ta: 'தமிழ்',
-    te: 'తెలుగు',
-    ml: 'മലയാളം'
-  };
+  const profileLabel =
+    userMode === 'child' ? 'Class 1-5' : userMode === 'student' ? 'Class 6-12' : 'Class 18+';
 
-  const modeLabels: Record<UserMode, string> = {
-    child: 'Child',
-    student: 'Student',
-    adult: 'Adult'
-  };
+  const ProfileIcon =
+    userMode === 'child' ? Smile : userMode === 'student' ? GraduationCap : User;
 
   return (
-    <header className="sticky top-0 z-40 bg-[#FFF8EF] border-b-2 border-[#E5DACF] px-4 py-2.5 shadow-sm">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-        {/* Brand and Screen Context */}
-        <div className="flex items-center gap-3 min-w-0">
+    <header className="sticky top-0 z-40 bg-[#FFF8EF] border-b-2 border-[#E5DACF] px-2.5 sm:px-4 h-12 max-h-12 flex items-center shadow-xs">
+      <div className="max-w-7xl w-full mx-auto flex items-center justify-between gap-2 sm:gap-3">
+        {/* Left: Brand Logo & Segmented Switch: [Chat] | [Board] */}
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             type="button"
-            onClick={onNavigateHome}
+            onClick={() => onNavigate('talk')}
             aria-label="Communiq Home"
-            className="flex items-center gap-2.5 text-left rounded-[10px] p-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#0F8B8D]"
+            className="flex items-center gap-1.5 sm:gap-2 text-left rounded-[8px] p-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#0A6C6E] cursor-pointer shrink-0"
           >
-            <div className="w-10 h-10 rounded-[10px] bg-[#0F8B8D] border-2 border-[#0F8B8D] flex items-center justify-center shrink-0">
-              <svg viewBox="0 0 100 100" width="28" height="28" aria-hidden="true">
+            <div className="w-7 h-7 rounded-[8px] bg-[#0A6C6E] border border-[#0A6C6E] flex items-center justify-center shrink-0">
+              <svg viewBox="0 0 100 100" width="18" height="18" aria-hidden="true">
                 <circle cx="50" cy="50" r="10" fill="#FFB703" />
                 <path d="M 28 50 A 22 22 0 0 1 72 50" fill="none" stroke="#FFFFFF" strokeWidth="8" strokeLinecap="round" />
                 <path d="M 18 50 A 32 32 0 0 1 82 50" fill="none" stroke="#FFFFFF" strokeWidth="8" strokeLinecap="round" />
               </svg>
             </div>
-            <div className="hidden sm:block">
-              <span className="block font-black text-xl tracking-tight text-[#085557] leading-none">
-                COMMUNIQ
-              </span>
-              <span className="block text-[11px] font-semibold text-[#5E564D] mt-0.5">
-                {t.tagline}
-              </span>
-            </div>
+            <h1 className="font-black text-sm tracking-tight text-[#085557] leading-none hidden xs:inline">
+              <span>COMMUNIQ</span>
+              <span className="sr-only"> - {currentScreenName || 'Dual-Mode AAC'}</span>
+            </h1>
           </button>
 
-          <div className="border-l-2 border-[#E5DACF] pl-3 py-0.5">
-            <h1 className="text-lg sm:text-xl font-black text-[#1F1B16] leading-tight">
-              {currentScreenName}
-            </h1>
-            {helperLine && (
-              <p className="text-xs sm:text-sm font-bold text-[#085557] leading-tight line-clamp-1">
-                {helperLine}
-              </p>
-            )}
+          {/* Segmented Switch: [Chat] | [Board] (36px height, 8px radius, teal indicator) */}
+          <div
+            role="tablist"
+            aria-label="Main spaces"
+            className="flex items-center h-8 sm:h-9 p-0.5 bg-[#E5DACF]/60 rounded-[8px] border border-[#E5DACF]"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={isChatActive}
+              onClick={() => onNavigate('talk')}
+              className={`h-full px-2.5 sm:px-3.5 rounded-[6px] text-xs font-black transition-all cursor-pointer ${
+                isChatActive
+                  ? 'bg-[#0A6C6E] text-white shadow-xs'
+                  : 'text-[#1F1B16] hover:bg-white/80'
+              }`}
+            >
+              Chat
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={isBoardActive}
+              onClick={() => onNavigate('communicate')}
+              className={`h-full px-2.5 sm:px-3.5 rounded-[6px] text-xs font-black transition-all cursor-pointer ${
+                isBoardActive
+                  ? 'bg-[#0A6C6E] text-white shadow-xs'
+                  : 'text-[#1F1B16] hover:bg-white/80'
+              }`}
+            >
+              Board
+            </button>
           </div>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Star & Streak badges for child mode */}
-          {userMode === 'child' && (
-            <div className="hidden md:flex items-center gap-2 bg-white border-2 border-[#FFB703] rounded-[10px] px-3 py-1.5">
-              <span className="flex items-center gap-1 font-black text-sm text-[#7A5400]">
-                <Star className="w-4 h-4 fill-[#FFB703] text-[#FFB703]" />
-                {stars}
-              </span>
-              <span className="flex items-center gap-1 font-black text-sm text-[#D62828] border-l border-[#E5DACF] pl-2">
-                <Flame className="w-4 h-4 text-[#D62828]" />
-                {streak}
-              </span>
-            </div>
-          )}
+        {/* Right: Language Selector, Profile Selector, Emergency Help, Settings */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Language Selector (EN / KN / HI) */}
+          <div
+            role="group"
+            aria-label="Language selection"
+            className="flex items-center h-8 p-0.5 bg-white border border-[#E5DACF] rounded-[8px]"
+          >
+            {languages.map((l) => (
+              <button
+                key={l.code}
+                type="button"
+                onClick={() => setLanguage(l.code)}
+                title={l.label}
+                aria-label={`Switch language to ${l.label}`}
+                className={`h-full px-1.5 sm:px-2 rounded-[5px] text-[11px] font-black transition-all cursor-pointer ${
+                  language === l.code
+                    ? 'bg-[#0A6C6E] text-white shadow-2xs'
+                    : 'text-[#5E564D] hover:text-[#1F1B16]'
+                }`}
+              >
+                {l.short}
+              </button>
+            ))}
+          </div>
 
-          {/* One-tap Language Quick Switch */}
+          {/* Profile Selector (opens age modal) */}
           <button
             type="button"
-            onClick={handleNextLanguage}
-            title="Tap to switch language"
-            aria-label={`Language: currently ${languageLabels[language]}. Tap to switch.`}
-            className="h-11 px-3 rounded-[10px] bg-white border-2 border-[#E5DACF] hover:border-[#0F8B8D] flex items-center gap-1.5 font-bold text-sm text-[#1F1B16] transition-transform active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#0F8B8D]"
+            onClick={onOpenProfileModal}
+            title={`Active profile: ${profileLabel}. Tap to change profile.`}
+            aria-label={`Current profile ${profileLabel}. Tap to switch profile`}
+            className="h-8 px-2 sm:px-2.5 rounded-[8px] bg-white border border-[#E5DACF] hover:border-[#0A6C6E] flex items-center gap-1 text-[#1F1B16] text-xs font-bold transition-all cursor-pointer active:scale-95 shadow-2xs"
           >
-            <Globe className="w-4 h-4 text-[#0F8B8D]" />
-            <span className="truncate max-w-[70px] sm:max-w-none">{languageLabels[language]}</span>
+            <ProfileIcon className="w-3.5 h-3.5 text-[#0A6C6E]" />
+            <span className="hidden sm:inline text-xs font-extrabold">{profileLabel}</span>
           </button>
 
-          {/* One-tap Mode Quick Switch */}
-          <button
-            type="button"
-            onClick={handleNextMode}
-            title="Tap to switch mode"
-            aria-label={`Mode: currently ${modeLabels[userMode]}. Tap to switch.`}
-            className="h-11 px-3 rounded-[10px] bg-white border-2 border-[#E5DACF] hover:border-[#0F8B8D] flex items-center gap-1.5 font-bold text-sm text-[#1F1B16] transition-transform active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#0F8B8D]"
-          >
-            <Sparkles className="w-4 h-4 text-[#FFB703]" />
-            <span className="hidden sm:inline">{modeLabels[userMode]}</span>
-          </button>
-
-          {/* Emergency Button always visible in RED */}
+          {/* ONE Red Button: Help (opens emergency screen with confirm) */}
           <button
             type="button"
             onClick={onOpenEmergency}
-            title="Emergency help"
-            aria-label="Emergency help button"
-            className="h-11 px-3.5 rounded-[10px] bg-[#D62828] hover:bg-[#B31D1D] text-white border-2 border-[#D62828] flex items-center gap-1.5 font-black text-sm transition-transform active:scale-95 focus-visible:outline focus-visible:outline-3 focus-visible:outline-red-600"
+            title="Emergency Help"
+            aria-label="Emergency Help"
+            className="h-8 px-2.5 sm:px-3 rounded-[8px] bg-[#D62828] text-white hover:bg-[#B91C1C] flex items-center gap-1 font-black text-xs cursor-pointer active:scale-95 shadow-xs"
           >
-            <AlertTriangle className="w-5 h-5 text-white" />
-            <span className="hidden xs:inline">{t.emergency}</span>
+            <AlertCircle className="w-3.5 h-3.5" />
+            <span>Help</span>
           </button>
 
-          {/* One-tap Settings */}
+          {/* Settings Gear */}
           <button
             type="button"
             onClick={onOpenSettings}
-            title={t.settings}
-            aria-label={t.settings}
-            className="w-11 h-11 rounded-[10px] bg-white border-2 border-[#E5DACF] hover:border-[#0F8B8D] flex items-center justify-center text-[#1F1B16] transition-transform active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#0F8B8D]"
+            title={t.settings || 'Settings'}
+            aria-label={t.settings || 'Settings'}
+            className="w-8 h-8 rounded-[8px] bg-white border border-[#E5DACF] hover:border-[#0A6C6E] flex items-center justify-center text-[#1F1B16] cursor-pointer active:scale-95 shadow-2xs"
           >
-            <SettingsIcon className="w-5 h-5" />
+            <SettingsIcon className="w-4 h-4 text-[#1F1B16]" />
           </button>
         </div>
       </div>

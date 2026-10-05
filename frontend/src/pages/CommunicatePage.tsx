@@ -1,16 +1,25 @@
-import React, { useState, useEffect, useCallback } from 'react';
+/* oxlint-disable react/set-state-in-effect */
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useCommuniq } from '../hooks/useCommuniq';
-import { CATEGORIES, Category } from '../data/categories';
-import { COMMUNICATION_ASSETS, CommunicationAsset, getAssetsByCategory, getAssetById } from '../data/assets';
-import { INTENT_LIST, IntentItem, buildSentence } from '../data/templates';
+import {
+  BoardCardItem,
+  getRootBoardGrid,
+  getFolderBoardGrid,
+  CATEGORY_FOLDERS,
+  searchBoard
+} from '../data/coreBoard';
+import { CommunicationAsset, COMMUNICATION_ASSETS } from '../data/assets';
+import { getLexiconEntry } from '../data/lexicon/entries';
+import { getIntentsForType } from '../data/intentMatrix';
+import { renderSentence } from '../services/sentenceRenderer';
+import { buildSentenceFromTray } from '../services/sentenceTray';
+import { fetchSentenceOptions, SentenceOption } from '../services/ai';
 import { Card } from '../components/Card';
 import { Pictogram } from '../components/Pictogram';
-import { Button } from '../components/Button';
-import { SpeakIndicator } from '../components/SpeakIndicator';
-import { MascotView } from '../components/MascotView';
-import { DrawingCanvas } from '../components/DrawingCanvas';
-import { SignRecognizer } from '../components/SignRecognizer';
-import { ArrowLeft, Send, Sparkles, Check, Search, Keyboard, PenTool, Hand, Layers } from 'lucide-react';
+import { SentenceStrip, StripToken } from '../components/SentenceStrip';
+import { RightRail } from '../components/RightRail';
+import { soundService } from '../services/sound';
+import { Search, ChevronRight, Wand2, X } from 'lucide-react';
 
 interface CommunicatePageProps {
   initialCategoryId?: string;
@@ -18,484 +27,467 @@ interface CommunicatePageProps {
 }
 
 export const CommunicatePage: React.FC<CommunicatePageProps> = ({
-  initialCategoryId = 'food_drink',
+  initialCategoryId,
   initialAssetId
 }) => {
   const {
     language,
     userMode,
     speak,
-    activeSpokenText,
     isSpeaking,
-    replaySpokenText,
-    stopSpeaking,
-    requestEmergencyConfirm,
     preferences,
     t
   } = useCommuniq();
 
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>(initialCategoryId);
-  const [selectedAsset, setSelectedAsset] = useState<CommunicationAsset | null>(() => {
-    return initialAssetId ? getAssetById(initialAssetId) || null : null;
+  // Navigation state
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(() => {
+    if (initialCategoryId && initialCategoryId !== 'all' && CATEGORY_FOLDERS[initialCategoryId]) {
+      return initialCategoryId;
+    }
+    return null;
   });
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [typedText, setTypedText] = useState<string>('');
-  const [somethingElseMode, setSomethingElseMode] = useState<'type' | 'draw' | 'sign' | 'all' | null>(null);
-  const [adultSentenceConfirmed, setAdultSentenceConfirmed] = useState<boolean>(false);
 
-  const getAssetLabel = useCallback((asset: CommunicationAsset) => {
-    return asset.labels[language === 'kn' ? 'kn' : language === 'hi' ? 'hi' : 'en'] || asset.labels.en;
+  // Sentence strip tokens
+  const [stripTokens, setStripTokens] = useState<StripToken[]>([]);
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Selected item for "You could say" natural sentence generator
+  const [selectedItem, setSelectedItem] = useState<BoardCardItem | null>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<SentenceOption[]>([]);
+  const [loadingAi, setLoadingAi] = useState<boolean>(false);
+
+  // Helper to extract localized text
+  const getItemLabel = useCallback((item: BoardCardItem) => {
+    const langKey = language === 'kn' ? 'kn' : language === 'hi' ? 'hi' : 'en';
+    return item.labels[langKey] || item.labels.en;
   }, [language]);
 
-  const handleCardTap = useCallback((asset: CommunicationAsset) => {
-    const label = getAssetLabel(asset);
+  const getItemSpokenText = useCallback((item: BoardCardItem) => {
+    const langKey = language === 'kn' ? 'kn' : language === 'hi' ? 'hi' : 'en';
+    return item.spokenText[langKey] || item.spokenText.en;
+  }, [language]);
 
-    if (asset.requiresConfirmation) {
-      requestEmergencyConfirm(label, () => {
-        speak(label, { category: asset.categoryId, assetId: asset.id });
-        setSelectedAsset(asset);
-        setAdultSentenceConfirmed(false);
-      });
-    } else {
-      speak(label, { category: asset.categoryId, assetId: asset.id });
-      setSelectedAsset(asset);
-      setAdultSentenceConfirmed(false);
-    }
-  }, [getAssetLabel, requestEmergencyConfirm, speak]);
-
-  // Pronounce initial asset if navigated directly with assetId
-  useEffect(() => {
-    if (initialAssetId) {
-      const asset = getAssetById(initialAssetId);
-      if (asset) {
-        const label = asset.labels[language === 'kn' ? 'kn' : language === 'hi' ? 'hi' : 'en'] || asset.labels.en;
-        speak(label, { category: asset.categoryId, assetId: asset.id });
-      }
-    }
-  }, [initialAssetId, language, speak]);
-
-  // Filter categories according to user mode
-  const visibleCategories = CATEGORIES.filter(c => c.forModes.includes(userMode));
-  const currentCategory = CATEGORIES.find(c => c.id === selectedCategoryId) || visibleCategories[0];
-
-  // Filter assets
-  const categoryAssets = getAssetsByCategory(selectedCategoryId);
-  const filteredAssets = searchQuery.trim()
-    ? COMMUNICATION_ASSETS.filter(a => {
-        const q = searchQuery.toLowerCase();
-        return (
-          a.labels.en.toLowerCase().includes(q) ||
-          a.labels.kn.toLowerCase().includes(q) ||
-          a.labels.hi.toLowerCase().includes(q) ||
-          a.alt.toLowerCase().includes(q)
-        );
-      })
-    : categoryAssets;
-
-  // Max 6 cards per screen for child mode
-  const displayedAssets = userMode === 'child' ? filteredAssets.slice(0, 6) : filteredAssets;
-
-  const getIntentLabel = (intent: IntentItem) => {
-    return intent.labels[language === 'kn' ? 'kn' : language === 'hi' ? 'hi' : 'en'] || intent.labels.en;
-  };
-
-  const getCategoryName = (cat: Category) => {
-    return cat.name[language === 'kn' ? 'kn' : language === 'hi' ? 'hi' : 'en'] || cat.name.en;
-  };
-
-  // STEP 2: Intent Tap -> builds full sentence according to language and age mode, speaks aloud
-  const handleIntentTap = (intent: IntentItem) => {
-    if (!selectedAsset) return;
-
-    if (intent.id === 'something_else') {
-      setSomethingElseMode('type');
+  // Handle Card Tap
+  const handleCardTap = useCallback((item: BoardCardItem) => {
+    if (item.type === 'folder' && item.folderId) {
+      setCurrentFolderId(item.folderId);
+      setSearchQuery('');
       return;
     }
 
-    const sentenceObj = buildSentence(selectedAsset.id, intent.id, language, userMode);
-    speak(sentenceObj.text, {
-      category: selectedAsset.categoryId,
-      assetId: selectedAsset.id,
-      intentId: intent.id
+    const label = getItemLabel(item);
+    const spoken = getItemSpokenText(item);
+
+    // 1. Speak immediately if setting is on
+    if (preferences.speakOnTap) {
+      speak(spoken, { category: item.wordClass, assetId: item.id });
+    }
+
+    // 2. Add token to sentence strip (max 8 tokens)
+    setStripTokens(prev => {
+      if (prev.length >= 8) return prev;
+      return [
+        ...prev,
+        {
+          id: item.id,
+          label,
+          svgIcon: item.svgIcon,
+          wordClass: item.wordClass,
+          alt: item.alt
+        }
+      ];
     });
 
-    if (userMode === 'adult') {
-      setAdultSentenceConfirmed(true);
-      setTimeout(() => setAdultSentenceConfirmed(false), 2400);
+    // 3. Set selected item for "You could say" recommendations
+    setSelectedItem(item);
+  }, [getItemLabel, getItemSpokenText, preferences.speakOnTap, speak]);
+
+  // Initial category & asset handling if specified
+  useEffect(() => {
+    if (initialCategoryId && initialCategoryId !== 'all') {
+      const folderKey = initialCategoryId === 'food_drink' ? 'food' : initialCategoryId === 'playing' ? 'play' : initialCategoryId === 'health' ? 'body_health' : initialCategoryId;
+      if (CATEGORY_FOLDERS[folderKey]) {
+        setCurrentFolderId(folderKey);
+      }
     }
+  }, [initialCategoryId]);
+
+  useEffect(() => {
+    if (initialAssetId) {
+      const asset = COMMUNICATION_ASSETS.find(a => a.id === initialAssetId);
+      if (asset) {
+        const item: BoardCardItem = {
+          id: asset.id,
+          type: 'word',
+          wordClass: 'noun',
+          labels: asset.labels,
+          spokenText: asset.labels,
+          svgIcon: asset.svgIcon,
+          level: 1,
+          adultSlot: 0,
+          studentSlot: 0,
+          childSlot: 0,
+          alt: asset.alt
+        };
+        handleCardTap(item);
+      }
+    }
+  }, [initialAssetId, handleCardTap]);
+
+  // Strip Actions
+  const handleDeleteLast = () => {
+    setStripTokens(prev => prev.slice(0, -1));
   };
 
-  const handleSpeakTypedText = () => {
-    if (!typedText.trim()) return;
-    speak(typedText.trim(), { category: 'typed' });
-    setTypedText('');
+  const handleClearStrip = () => {
+    setStripTokens([]);
+    setSelectedItem(null);
+    setAiSuggestions([]);
   };
+
+  const handleSayIt = () => {
+    if (stripTokens.length === 0) return;
+    const fullText = stripTokens.map(t => t.label).join(' ');
+    speak(fullText, { category: 'sentence_strip' });
+  };
+
+  const handleMakeSentence = () => {
+    if (stripTokens.length === 0) return;
+
+    // Convert tokens to communication assets for sentenceTray
+    const fauxAssets: CommunicationAsset[] = stripTokens.map(tok => ({
+      id: tok.id.replace('core_', '').replace('food_', '').replace('drink_', ''),
+      categoryId: 'general',
+      labels: { en: tok.label, kn: tok.label, hi: tok.label },
+      alt: tok.label,
+      svgIcon: tok.svgIcon,
+      reviewed: true
+    }));
+
+    const naturalSentence = buildSentenceFromTray(
+      fauxAssets,
+      language,
+      userMode,
+      'polite',
+      preferences.wordingForMe
+    );
+
+    speak(naturalSentence, { category: 'sentence_tray' });
+  };
+
+  // Right Rail Actions
+  const handleGoBack = useCallback(() => {
+    if (currentFolderId) {
+      setCurrentFolderId(null);
+      setSearchQuery('');
+    }
+  }, [currentFolderId]);
+
+  const handleGoHome = () => {
+    setCurrentFolderId(null);
+    setSearchQuery('');
+  };
+
+  const handleGoCore = () => {
+    setCurrentFolderId(null);
+    setSearchQuery('');
+  };
+
+  const handleAttention = () => {
+    soundService.playAttentionChime();
+    const attentionPhrase =
+      language === 'kn'
+        ? 'ಕ್ಷಮಿಸಿ, ನಾನು ಏನೋ ಹೇಳಲು ಬಯಸುತ್ತೇನೆ.'
+        : language === 'hi'
+        ? 'क्षमा करें, मैं कुछ कहना चाहता हूँ।'
+        : 'Excuse me, I want to say something.';
+    speak(attentionPhrase, { category: 'attention' });
+  };
+
+  // Compute "You could say" sentences for selected item
+  const instantOptions = useMemo(() => {
+    if (!selectedItem || selectedItem.type === 'folder') return [];
+
+    const assetId = selectedItem.id.replace('core_', '').replace('food_', '').replace('drink_', '');
+    const entry = getLexiconEntry(assetId) || getLexiconEntry('pizza');
+    if (!entry) return [];
+
+    const intents = getIntentsForType(entry.type);
+    const langKey = language === 'kn' ? 'kn' : language === 'hi' ? 'hi' : 'en';
+
+    return intents.slice(0, 4).map(intent => {
+      const result = renderSentence({
+        entry,
+        intentId: intent.id,
+        language: langKey,
+        ageGroup: userMode,
+        tone: 'polite',
+        wording: preferences.wordingForMe
+      });
+      return {
+        text: result.text,
+        color: intent.color,
+        borderColor: intent.borderColor,
+        textColor: intent.textColor
+      };
+    });
+  }, [selectedItem, language, userMode, preferences.wordingForMe]);
+
+  // Fetch AI options in background if AI enabled
+  useEffect(() => {
+    if (!selectedItem || !preferences.enableAI) {
+      setAiSuggestions([]);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingAi(true);
+
+    fetchSentenceOptions({
+      assetId: selectedItem.id.replace('core_', ''),
+      language,
+      userMode,
+      tone: 'polite'
+    })
+      .then(res => {
+        if (!cancelled) {
+          setAiSuggestions(res.slice(0, 3));
+          setLoadingAi(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoadingAi(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedItem, preferences.enableAI, language, userMode]);
+
+  // Compute Active Grid Cards
+  const activeVocabLevel = preferences.vocabLevel || 3;
+  const boardGrid = useMemo(() => {
+    if (currentFolderId) {
+      return getFolderBoardGrid(currentFolderId, userMode, activeVocabLevel);
+    }
+    return getRootBoardGrid(userMode, activeVocabLevel);
+  }, [currentFolderId, userMode, activeVocabLevel]);
+
+  // Search Results
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    return searchBoard(searchQuery, language);
+  }, [searchQuery, language]);
+
+  // Current folder name for breadcrumbs
+  const currentFolder = currentFolderId ? CATEGORY_FOLDERS[currentFolderId] : null;
+  const folderTitle = currentFolder
+    ? currentFolder.labels[language === 'kn' ? 'kn' : language === 'hi' ? 'hi' : 'en'] || currentFolder.labels.en
+    : '';
+
+  // Desktop columns class
+  const gridColumnsClass =
+    userMode === 'child'
+      ? 'grid-cols-4 sm:grid-cols-5'
+      : userMode === 'student'
+      ? 'grid-cols-4 sm:grid-cols-5 md:grid-cols-6'
+      : 'grid-cols-5 sm:grid-cols-6 md:grid-cols-8';
+
+  // Keyboard Escape navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && currentFolderId !== null) {
+        e.preventDefault();
+        handleGoBack();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentFolderId, handleGoBack]);
 
   return (
-    <div className="space-y-6 pb-20">
-      {/* Top Helper line */}
-      <div className="bg-white border-2 border-[#E5DACF] rounded-[16px] p-4 flex items-center justify-between gap-4">
-        <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-[#0F8B8D]">
-            {t.communicate}
-          </span>
-          <p className="text-base sm:text-lg font-bold text-[#1F1B16]">
-            {selectedAsset ? t.whatDoYouWantToSay : t.helperWhatShouldITap}
-          </p>
-        </div>
+    <div className="h-[calc(100vh-48px)] max-h-[calc(100vh-48px)] overflow-hidden flex flex-col gap-1.5 p-1.5 sm:p-2 select-none max-w-7xl mx-auto w-full">
+      {/* 1. Sentence Strip at top (72 to 88px tall) */}
+      <SentenceStrip
+        tokens={stripTokens}
+        onDeleteLast={handleDeleteLast}
+        onClear={handleClearStrip}
+        onSayIt={handleSayIt}
+        onMakeSentence={handleMakeSentence}
+        isSpeaking={isSpeaking}
+        userMode={userMode}
+        mascotPose={selectedItem ? 'proud' : 'calm'}
+        mascotPrompt={t.communicateInstruction || 'Tap pictures to make a sentence'}
+      />
 
-        {selectedAsset && (
-          <Button
-            variant="secondary"
-            size="normal"
-            onClick={() => setSelectedAsset(null)}
-            icon={<ArrowLeft className="w-5 h-5 text-[#5E564D]" />}
+      {/* 2. "You could say" instant full natural sentence suggestions */}
+      {instantOptions.length > 0 && (
+        <div
+          role="region"
+          aria-label="Suggested natural sentences"
+          className="bg-[#FFF8EF] border-2 border-[#E5DACF] rounded-[10px] p-2 flex flex-wrap items-center gap-1.5 shadow-xs"
+        >
+          <span className="text-[11px] font-black uppercase text-[#5E564D] mr-1 flex items-center gap-1">
+            <Wand2 className="w-3.5 h-3.5 text-[#0A6C6E]" />
+            You could say:
+          </span>
+          {instantOptions.map((opt, i) => (
+            <button
+              key={`instant-opt-${i}`}
+              type="button"
+              onClick={() => speak(opt.text, { category: 'suggested_sentence' })}
+              style={{ backgroundColor: opt.color, borderColor: opt.borderColor, color: opt.textColor }}
+              className="h-8 px-2.5 rounded-[8px] border-2 font-bold text-xs truncate max-w-[280px] hover:brightness-95 transition-transform active:scale-95 cursor-pointer"
+            >
+              {opt.text}
+            </button>
+          ))}
+          {loadingAi && (
+            <span className="text-xs text-[#5E564D] animate-pulse">Loading more ideas...</span>
+          )}
+          {aiSuggestions.map((aiOpt, i) => (
+            <button
+              key={`ai-opt-${i}`}
+              type="button"
+              onClick={() => speak(aiOpt.text, { category: 'ai_sentence' })}
+              className="h-8 px-2.5 rounded-[8px] border border-[#0A6C6E] bg-[#E2F3F3] text-[#063D3E] font-bold text-xs hover:bg-[#D0EDED] cursor-pointer active:scale-95"
+            >
+              {aiOpt.text}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* 3. Sub-header: Breadcrumb (Home > Folder) & Search Bar */}
+      <div className="flex items-center justify-between gap-2">
+        {/* Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-xs font-bold text-[#5E564D]">
+          <button
+            type="button"
+            onClick={handleGoHome}
+            className={`hover:text-[#0A6C6E] cursor-pointer ${!currentFolderId ? 'text-[#0A6C6E] font-black' : ''}`}
           >
-            {t.back}
-          </Button>
-        )}
+            Home
+          </button>
+          {currentFolder && (
+            <>
+              <ChevronRight className="w-3.5 h-3.5 text-[#A89F95]" />
+              <span className="text-[#1F1B16] font-black truncate max-w-[120px]">
+                {folderTitle}
+              </span>
+            </>
+          )}
+        </nav>
+
+        {/* Search Input */}
+        <div className="relative w-48 sm:w-64">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search words..."
+            aria-label="Search words"
+            className="w-full h-8 pl-7 pr-7 bg-white border-2 border-[#E5DACF] rounded-[8px] text-xs font-bold text-[#1F1B16] placeholder:text-[#8C827A] focus:border-[#0A6C6E] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#0A6C6E]"
+          />
+          <Search className="w-3.5 h-3.5 text-[#8C827A] absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              aria-label="Clear search"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[#8C827A] hover:text-[#1F1B16]"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Active Spoken Sentence & Replay */}
-      {activeSpokenText && (
-        <SpeakIndicator
-          isSpeaking={isSpeaking}
-          phrase={activeSpokenText}
-          onReplay={replaySpokenText}
-          onStop={stopSpeaking}
-          replayLabel={t.speakAgain}
-          stopLabel={t.stop}
-          speakingLabel={t.speaking}
-          userMode={userMode}
-        />
-      )}
-
-      {/* Quiet checkmark badge for adult mode */}
-      {userMode === 'adult' && adultSentenceConfirmed && (
-        <div
-          role="status"
-          className="bg-[#DCFCE7] border-2 border-[#2E9E5B] text-[#166534] rounded-[12px] p-3 flex items-center gap-2.5 font-bold animate-fadeIn"
+      {/* 4. Main Body: Fixed Grid + Right Rail */}
+      <div className="flex-1 min-h-0 flex items-stretch gap-2 w-full overflow-hidden">
+        {/* Board Cards Grid */}
+        <main
+          role="region"
+          aria-label={currentFolder ? `${folderTitle} board` : 'Core Communication Board'}
+          className="flex-1 w-full min-w-0 h-full overflow-y-auto pr-1"
         >
-          <Check className="w-5 h-5 text-[#2E9E5B] shrink-0" />
-          <span>Sentence spoken clearly and saved to My Day.</span>
-        </div>
-      )}
-
-      {/* ============================================================== */}
-      {/* STEP 2 VIEW: Intent Selector ("What do you want to say?")       */}
-      {/* ============================================================== */}
-      {selectedAsset ? (
-        <div className="space-y-6">
-          {/* Selected Picture Header Card */}
-          <div className="bg-white border-2 border-[#0F8B8D] rounded-[16px] p-5 flex items-center gap-4 shadow-sm">
-            <div className="w-20 h-20 rounded-[12px] bg-[#FFF8EF] border-2 border-[#E5DACF] flex items-center justify-center shrink-0">
-              <Pictogram name={selectedAsset.svgIcon} alt={selectedAsset.alt} size={64} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <span className="text-xs font-bold text-[#0F8B8D] uppercase tracking-wider">
-                Selected Word
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-[#1F1B16] truncate">
-                {getAssetLabel(selectedAsset)}
-              </h2>
-              <p className="text-xs sm:text-sm text-[#5E564D] font-medium mt-0.5">
-                {t.tapIntentHelper}
+          {searchQuery.trim() ? (
+            /* Search Results Grid */
+            <div>
+              <p className="text-xs font-bold text-[#5E564D] mb-2">
+                Found {searchResults.length} matching card{searchResults.length === 1 ? '' : 's'}
               </p>
+              {searchResults.length === 0 ? (
+                <div className="p-8 text-center bg-white rounded-[12px] border-2 border-dashed border-[#E5DACF]">
+                  <p className="text-xs font-bold text-[#5E564D]">
+                    No words found for &quot;{searchQuery}&quot;. Try another term.
+                  </p>
+                </div>
+              ) : (
+                <div className={`grid ${gridColumnsClass} gap-2 sm:gap-2.5`}>
+                  {searchResults.map((item) => (
+                    <Card
+                      key={`search-${item.id}`}
+                      title={getItemLabel(item)}
+                      image={<Pictogram name={item.svgIcon} alt={item.alt || getItemLabel(item)} size={userMode === 'child' ? 52 : 38} fallbackLabel={getItemLabel(item)} />}
+                      wordClass={item.wordClass}
+                      isFolder={item.type === 'folder'}
+                      userMode={userMode}
+                      density={preferences.screenDensity || 'compact'}
+                      onClick={() => handleCardTap(item)}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-
-          {/* Child mascot helper */}
-          {userMode === 'child' && (
-            <MascotView
-              pose="point"
-              size={90}
-              message="Choose an intent to say the full sentence!"
-            />
-          )}
-
-          {/* Intent Cards Grid */}
-          <div>
-            <h3 className="text-xl font-black text-[#1F1B16] mb-3">
-              {t.whatDoYouWantToSay}
-            </h3>
-            <div className={`grid gap-3.5 ${
-              userMode === 'child'
-                ? 'grid-cols-1 sm:grid-cols-2'
-                : preferences.largeAndSimple
-                ? 'grid-cols-1'
-                : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
-            }`}>
-              {INTENT_LIST.map((intent) => {
-                const intentLabel = getIntentLabel(intent);
+          ) : (
+            /* FIXED MOTOR PLANNING GRID */
+            <div className={`grid ${gridColumnsClass} gap-2 sm:gap-2.5`}>
+              {boardGrid.map((item, slotIndex) => {
+                if (!item) {
+                  // Locked/blank slot to preserve exact coordinates
+                  return (
+                    <Card
+                      key={`blank-slot-${slotIndex}`}
+                      isEmptySlot
+                      userMode={userMode}
+                      density={preferences.screenDensity || 'compact'}
+                    />
+                  );
+                }
 
                 return (
-                  <button
-                    key={intent.id}
-                    type="button"
-                    onClick={() => handleIntentTap(intent)}
-                    style={{ backgroundColor: intent.color, borderColor: intent.borderColor, color: intent.textColor }}
-                    aria-label={`Intent: ${intentLabel}`}
-                    className={`min-h-[72px] sm:min-h-[84px] rounded-[12px] border-2 p-4 text-left font-black flex items-center justify-between select-none cursor-pointer transition-transform duration-100 active:scale-95 focus-visible:outline focus-visible:outline-3 focus-visible:outline-[#0F8B8D] ${
-                      userMode === 'child' ? 'text-2xl' : 'text-xl'
-                    }`}
-                  >
-                    <span>{intentLabel}</span>
-                    <Sparkles className="w-5 h-5 shrink-0 opacity-70" />
-                  </button>
+                  <Card
+                    key={`slot-${slotIndex}-${item.id}`}
+                    title={getItemLabel(item)}
+                    image={<Pictogram name={item.svgIcon} alt={item.alt || getItemLabel(item)} size={userMode === 'child' ? 52 : 38} fallbackLabel={getItemLabel(item)} />}
+                    wordClass={item.wordClass}
+                    isFolder={item.type === 'folder'}
+                    userMode={userMode}
+                    density={preferences.screenDensity || 'compact'}
+                    isSelected={selectedItem?.id === item.id}
+                    onClick={() => handleCardTap(item)}
+                  />
                 );
               })}
             </div>
-          </div>
-        </div>
-      ) : (
-        /* ============================================================== */
-        /* STEP 1 VIEW: Category Selector & Picture Grid                  */
-        /* ============================================================== */
-        <div className="space-y-6">
-          {/* Search bar & Something Else Options */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t.search}
-                aria-label={t.search}
-                className="w-full min-h-[56px] pl-11 pr-4 bg-white border-2 border-[#E5DACF] rounded-[12px] text-lg font-bold text-[#1F1B16] placeholder:text-[#5E564D] focus:border-[#0F8B8D] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#0F8B8D]"
-              />
-              <Search className="w-5 h-5 text-[#5E564D] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
-
-            <Button
-              variant="secondary"
-              size="normal"
-              onClick={() => setSomethingElseMode('type')}
-              icon={<Keyboard className="w-5 h-5 text-[#0F8B8D]" />}
-            >
-              {t.somethingElse}
-            </Button>
-          </div>
-
-          {/* Categories Horizontal Tabs */}
-          {!searchQuery && (
-            <div>
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-                {visibleCategories.map((cat) => {
-                  const isSelected = selectedCategoryId === cat.id;
-                  const catName = getCategoryName(cat);
-
-                  return (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => setSelectedCategoryId(cat.id)}
-                      aria-pressed={isSelected}
-                      style={{
-                        backgroundColor: isSelected ? cat.color : '#FFFFFF',
-                        borderColor: isSelected ? cat.borderColor : '#E5DACF',
-                        color: isSelected ? cat.textColor : '#1F1B16'
-                      }}
-                      className={`min-h-[50px] px-4 py-2.5 rounded-[12px] border-2 font-bold text-base shrink-0 select-none cursor-pointer transition-transform duration-100 active:scale-95 flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#0F8B8D] ${
-                        isSelected ? 'ring-2 ring-[#0F8B8D]/30' : 'hover:border-[#0F8B8D]'
-                      }`}
-                    >
-                      <span>{catName}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
           )}
+        </main>
 
-          {/* Picture Cards Grid */}
-          <div>
-            <div className="flex items-center justify-between mb-3 px-1">
-              <h2 className="text-xl sm:text-2xl font-black text-[#1F1B16]">
-                {searchQuery ? `Search Results (${filteredAssets.length})` : getCategoryName(currentCategory)}
-              </h2>
-              <span className="text-xs sm:text-sm font-semibold text-[#5E564D]">
-                {t.helperWhatHappensNext} Tapping speaks word
-              </span>
-            </div>
-
-            <div className={`grid gap-3.5 sm:gap-4 ${
-              userMode === 'child'
-                ? 'grid-cols-2'
-                : userMode === 'student'
-                ? 'grid-cols-2 sm:grid-cols-3'
-                : preferences.largeAndSimple
-                ? 'grid-cols-1 sm:grid-cols-2'
-                : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
-            }`}>
-              {displayedAssets.map((asset) => (
-                <Card
-                  key={asset.id}
-                  title={getAssetLabel(asset)}
-                  image={<Pictogram name={asset.svgIcon} alt={asset.alt} size={userMode === 'child' ? 68 : 56} />}
-                  userMode={userMode}
-                  onClick={() => handleCardTap(asset)}
-                  color="#FFFFFF"
-                  borderColor={asset.requiresConfirmation ? '#D62828' : '#E5DACF'}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ============================================================== */}
-      {/* SOMETHING ELSE MODAL: Type, Draw, Sign, Choose Picture        */}
-      {/* ============================================================== */}
-      {somethingElseMode && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="something-else-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
-        >
-          <div className="w-full max-w-2xl bg-white border-2 border-[#0F8B8D] rounded-[16px] p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b-2 border-[#E5DACF] pb-4 mb-4">
-              <h3 id="something-else-title" className="text-2xl font-black text-[#1F1B16]">
-                {t.somethingElse}
-              </h3>
-              <Button
-                variant="secondary"
-                size="normal"
-                onClick={() => setSomethingElseMode(null)}
-              >
-                {t.close}
-              </Button>
-            </div>
-
-            {/* Sub-mode selector tabs */}
-            <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
-              <button
-                type="button"
-                onClick={() => setSomethingElseMode('type')}
-                className={`min-h-[46px] px-4 rounded-[10px] border-2 font-bold text-sm flex items-center gap-2 ${
-                  somethingElseMode === 'type'
-                    ? 'bg-[#0F8B8D] text-white border-[#0F8B8D]'
-                    : 'bg-[#FFF8EF] border-[#E5DACF] text-[#1F1B16]'
-                }`}
-              >
-                <Keyboard className="w-4 h-4" />
-                <span>Type</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setSomethingElseMode('draw')}
-                className={`min-h-[46px] px-4 rounded-[10px] border-2 font-bold text-sm flex items-center gap-2 ${
-                  somethingElseMode === 'draw'
-                    ? 'bg-[#0F8B8D] text-white border-[#0F8B8D]'
-                    : 'bg-[#FFF8EF] border-[#E5DACF] text-[#1F1B16]'
-                }`}
-              >
-                <PenTool className="w-4 h-4" />
-                <span>Draw</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setSomethingElseMode('sign')}
-                className={`min-h-[46px] px-4 rounded-[10px] border-2 font-bold text-sm flex items-center gap-2 ${
-                  somethingElseMode === 'sign'
-                    ? 'bg-[#0F8B8D] text-white border-[#0F8B8D]'
-                    : 'bg-[#FFF8EF] border-[#E5DACF] text-[#1F1B16]'
-                }`}
-              >
-                <Hand className="w-4 h-4" />
-                <span>Sign</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setSomethingElseMode('all')}
-                className={`min-h-[46px] px-4 rounded-[10px] border-2 font-bold text-sm flex items-center gap-2 ${
-                  somethingElseMode === 'all'
-                    ? 'bg-[#0F8B8D] text-white border-[#0F8B8D]'
-                    : 'bg-[#FFF8EF] border-[#E5DACF] text-[#1F1B16]'
-                }`}
-              >
-                <Layers className="w-4 h-4" />
-                <span>All Pictures</span>
-              </button>
-            </div>
-
-            {/* TAB: Type what you want to say */}
-            {somethingElseMode === 'type' && (
-              <div className="space-y-4">
-                <label htmlFor="custom-type-input" className="block text-lg font-bold text-[#1F1B16]">
-                  {t.typeWhatYouWantToSay}
-                </label>
-                <textarea
-                  id="custom-type-input"
-                  rows={4}
-                  value={typedText}
-                  onChange={(e) => setTypedText(e.target.value)}
-                  placeholder={t.typePlaceholder}
-                  className="w-full p-4 border-2 border-[#E5DACF] rounded-[12px] text-xl font-bold text-[#1F1B16] focus:border-[#0F8B8D] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#0F8B8D]"
-                />
-                <div className="flex justify-end gap-3">
-                  <Button
-                    variant="primary"
-                    size="large"
-                    onClick={handleSpeakTypedText}
-                    icon={<Send className="w-5 h-5 text-white" />}
-                  >
-                    {t.speak}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* TAB: Draw */}
-            {somethingElseMode === 'draw' && (
-              <DrawingCanvas
-                onSpeak={(text) => {
-                  speak(text, { category: 'drawing' });
-                  setSomethingElseMode(null);
-                }}
-                onAddToSentence={(asset) => {
-                  setSelectedAsset(asset);
-                  setSomethingElseMode(null);
-                }}
-                onClose={() => setSomethingElseMode(null)}
-              />
-            )}
-
-            {/* TAB: Sign */}
-            {somethingElseMode === 'sign' && (
-              <SignRecognizer
-                onSpeak={(text) => {
-                  speak(text, { category: 'sign' });
-                  setSomethingElseMode(null);
-                }}
-                onClose={() => setSomethingElseMode(null)}
-              />
-            )}
-
-            {/* TAB: All Pictures */}
-            {somethingElseMode === 'all' && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {COMMUNICATION_ASSETS.slice(0, 12).map(asset => (
-                    <button
-                      key={asset.id}
-                      type="button"
-                      onClick={() => {
-                        setSomethingElseMode(null);
-                        handleCardTap(asset);
-                      }}
-                      className="min-h-[70px] rounded-[12px] border-2 border-[#E5DACF] bg-white p-2 flex items-center gap-2 hover:border-[#0F8B8D]"
-                    >
-                      <Pictogram name={asset.svgIcon} alt={asset.alt} size={40} />
-                      <span className="font-bold text-sm truncate">{getAssetLabel(asset)}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+        {/* Right Rail (Desktop vertical rail & Phone bottom bar, hidden in child mode) */}
+        {userMode !== 'child' && (
+          <RightRail
+            canGoBack={currentFolderId !== null}
+            onGoBack={handleGoBack}
+            onGoHome={handleGoHome}
+            onGoCore={handleGoCore}
+            onUndoLast={handleDeleteLast}
+            onAttention={handleAttention}
+          />
+        )}
+      </div>
     </div>
   );
 };

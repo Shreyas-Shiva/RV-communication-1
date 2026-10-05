@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useCommuniq } from '../hooks/useCommuniq';
 import { useSpeechRecognition, SpeechRecognitionState } from '../hooks/useSpeechRecognition';
 import {
@@ -85,6 +85,34 @@ export const TalkPage: React.FC<TalkPageProps> = ({ onNavigateToTab }) => {
   const [demoActive, setDemoActive] = useState<boolean>(preferences.demoMode || false);
   const [demoScenario, setDemoScenario] = useState<'hungry' | 'homework'>('hungry');
   const [demoStep, setDemoStep] = useState<number>(0);
+
+  // Tone controls: Short, Polite, Casual
+  const [talkTone, setTalkTone] = useState<'short' | 'polite' | 'casual'>('polite');
+
+  const repairOptions = useMemo(() => {
+    if (language === 'kn') {
+      return [
+        { text: 'ನಾನು ಹಾಗೆ ಹೇಳಲು ಉದ್ದೇಶಿಸಿರಲಿಲ್ಲ.' },
+        { text: 'ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ.' },
+        { text: 'ನಾನು ಇನ್ನೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸುತ್ತೇನೆ.' },
+        { text: 'ನಾನು ಹೇಳಲು ಬಯಸಿದ್ದು ಅದಲ್ಲ.' }
+      ];
+    }
+    if (language === 'hi') {
+      return [
+        { text: 'मेरा यह मतलब नहीं था।' },
+        { text: 'कृपया थोड़ा इंतज़ार करें।' },
+        { text: 'मुझे फिर से कोशिश करने दें।' },
+        { text: 'मैं यह नहीं कहना चाहता था।' }
+      ];
+    }
+    return [
+      { text: 'I did not mean that.' },
+      { text: 'Please wait.' },
+      { text: 'Let me try again.' },
+      { text: 'That is not what I wanted to say.' }
+    ];
+  }, [language]);
 
   // Bottom scroll anchor
   const threadEndRef = useRef<HTMLDivElement>(null);
@@ -709,12 +737,32 @@ export const TalkPage: React.FC<TalkPageProps> = ({ onNavigateToTab }) => {
               </p>
             </div>
 
-            {loadingSuggestions && (
-              <span className="text-xs font-bold text-[#085557] flex items-center gap-1.5 animate-pulse">
-                <Sparkles className="w-3.5 h-3.5" />
-                Thinking...
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {loadingSuggestions && (
+                <span className="text-xs font-bold text-[#085557] hidden sm:flex items-center gap-1 animate-pulse">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Thinking...
+                </span>
+              )}
+
+              {/* Tone controls: Short, Polite, Casual */}
+              <div className="flex items-center gap-1 bg-[#FFF8EF] p-1 rounded-[8px] border border-[#E5DACF]">
+                {(['short', 'polite', 'casual'] as const).map((tone) => (
+                  <button
+                    key={tone}
+                    type="button"
+                    onClick={() => setTalkTone(tone)}
+                    className={`h-7 px-2.5 rounded-[6px] font-bold text-xs capitalize transition-transform active:scale-95 ${
+                      talkTone === tone
+                        ? 'bg-[#0A6C6E] text-white shadow-xs'
+                        : 'text-[#5E564D] hover:text-[#1F1B16]'
+                    }`}
+                  >
+                    {tone}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Suggestion Options Grid */}
@@ -806,6 +854,23 @@ export const TalkPage: React.FC<TalkPageProps> = ({ onNavigateToTab }) => {
                 );
               })
             )}
+          </div>
+
+          {/* 1-tap Conversation Repair Row */}
+          <div className="pt-2 border-t border-[#E5DACF] flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] font-black uppercase text-[#5E564D] mr-1">
+              Repair:
+            </span>
+            {repairOptions.map((rep: { text: string }, idx: number) => (
+              <button
+                key={`talk-repair-${idx}`}
+                type="button"
+                onClick={() => executeUserSpeech(rep.text, 'help')}
+                className="h-7 px-2.5 rounded-[6px] bg-[#FFF4D6] border border-[#FFB703] text-[#7A5400] font-bold text-xs hover:border-[#7A5400] transition-transform active:scale-95"
+              >
+                {rep.text}
+              </button>
+            ))}
           </div>
 
           {/* User Custom Typed Voice Box */}

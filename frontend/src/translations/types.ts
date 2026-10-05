@@ -55,11 +55,43 @@ export interface Translations {
   privacy: string;
   terms: string;
 
-  // Helper lines
+  // Helper lines - one short natural instruction per screen
   helperWhereAmI: string;
   helperWhatCanISay: string;
   helperWhatShouldITap: string;
   helperWhatHappensNext: string;
+  homeInstruction: string;
+  communicateInstruction: string;
+  talkInstruction: string;
+  practiceInstruction: string;
+  myDayInstruction: string;
+  settingsInstruction: string;
+  emergencyInstruction: string;
+
+  // New settings
+  speakOnTapLabel: string;
+  speakOnTapDesc: string;
+  screenDensityLabel: string;
+  densityCompact: string;
+  densityComfortable: string;
+  densityLarge: string;
+  wordingForMeLabel: string;
+  wordingNeutral: string;
+  wordingMasculine: string;
+  wordingFeminine: string;
+
+  // Sentence Tray
+  sentenceTrayTitle: string;
+  sayIt: string;
+  makeItASentence: string;
+  undo: string;
+  trayFullNotice: string;
+
+  // Continuation & You could say
+  youCouldSayTitle: string;
+  moreIdeasTitle: string;
+  keepGoingTitle: string;
+  repairTitle: string;
 
   // Home Screen
   childGreeting: string;

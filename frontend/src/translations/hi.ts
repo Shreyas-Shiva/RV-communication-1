@@ -54,11 +54,43 @@ export const hi: Translations = {
   privacy: "गोपनीयता नीति",
   terms: "उपयोग की शर्तें",
 
-  // Helper lines
+  // Helper lines - one short natural instruction per screen
   helperWhereAmI: "मैं कहाँ हूँ?",
   helperWhatCanISay: "मैं क्या कह सकता हूँ?",
   helperWhatShouldITap: "मुझे क्या टैप करना चाहिए?",
   helperWhatHappensNext: "आगे क्या होगा?",
+  homeInstruction: "कार्ड चुनें या बातचीत शुरू करें।",
+  communicateInstruction: "वाक्य बनाने के लिए चित्र पर टैप करें।",
+  talkInstruction: "बारी-बारी से बातचीत करें।",
+  practiceInstruction: "अपनी गति से शब्दों का अभ्यास करें।",
+  myDayInstruction: "आज आपने क्या कहा, यहाँ देखें।",
+  settingsInstruction: "आवाज़, स्क्रीन और गोपनीयता बदलें।",
+  emergencyInstruction: "त्वरित सहायता के लिए टैप करें।",
+
+  // New settings
+  speakOnTapLabel: "चित्र दबाते ही शब्द बोलें",
+  speakOnTapDesc: "किसी भी कार्ड पर टैप करते ही वह शब्द तुरंत सुनें।",
+  screenDensityLabel: "स्क्रीन का आकार (घनत्व)",
+  densityCompact: "सघन (छोटा)",
+  densityComfortable: "आरामदायक",
+  densityLarge: "बड़ा",
+  wordingForMeLabel: "मेरे लिए शब्द चयन (हिन्दी)",
+  wordingNeutral: "तटस्थ (सामान्य)",
+  wordingMasculine: "पुल्लिंग",
+  wordingFeminine: "स्त्रीलिंग",
+
+  // Sentence Tray
+  sentenceTrayTitle: "वाक्य ट्रे",
+  sayIt: "बोलें",
+  makeItASentence: "पूरा वाक्य बनाएं",
+  undo: "वापस लें",
+  trayFullNotice: "ट्रे भर गई है (अधिकतम 6 शब्द)।",
+
+  // Continuation & You could say
+  youCouldSayTitle: "आप यह कह सकते हैं",
+  moreIdeasTitle: "अन्य सुझाव",
+  keepGoingTitle: "बातचीत जारी रखें",
+  repairTitle: "सुधारें",
 
   // Home Screen
   childGreeting: "नमस्ते दोस्त! आओ मिलकर बात करें।",

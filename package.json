@@ -11,14 +11,22 @@
     "test:backend": "python -m pytest backend",
     "test:all": "npm --prefix frontend run test && python -m pytest backend",
     "check:branding": "node scripts/check_branding.mjs",
+    "lint:lexicon": "node scripts/lint_lexicon.mjs",
+    "lint:grammar": "node scripts/lint_grammar.mjs",
     "check:keys": "node scripts/check_keys.mjs",
     "setup:models": "node scripts/setup_models.mjs",
     "setup:site": "node scripts/setup_site.mjs",
     "audit": "python scripts/audit_codebase.py",
+    "audit:colors": "node scripts/audit_colors.mjs",
+    "audit:calm": "node scripts/audit_calm.mjs",
     "export:review": "node scripts/review_kit.mjs export",
     "import:review": "node scripts/review_kit.mjs import",
     "train:sign": "node scripts/train_sign.mjs",
     "prelaunch": "node scripts/prelaunch.mjs",
-    "verify:live": "node scripts/verify_live.mjs"
+    "verify:live": "node scripts/verify_live.mjs",
+    "verify:redesign": "node scripts/verify_redesign.mjs",
+    "verify:acceptance": "node scripts/verify_acceptance.mjs",
+    "fetch:pictograms": "node scripts/fetch_pictograms.mjs",
+    "check:pictograms": "node scripts/check_pictograms.mjs"
   }
 }

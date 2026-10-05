@@ -1,0 +1,542 @@
+{
+  "scenarios": [
+    {
+      "id": "ordering_food",
+      "title": {
+        "en": "Ordering Food and Drinks",
+        "kn": "ಆಹಾರ ಮತ್ತು ಪಾನೀಯಗಳನ್ನು ಆರ್ಡರ್ ಮಾಡುವುದು",
+        "hi": "खाना और पेय ऑर्डर करना"
+      },
+      "description": {
+        "en": "Ordering meals, asking questions about the menu, and paying the bill.",
+        "kn": "ಊಟ ಆರ್ಡರ್ ಮಾಡುವುದು, ಮೆನು ಬಗ್ಗೆ ಕೇಳುವುದು ಮತ್ತು ಬಿಲ್ ಪಾವತಿಸುವುದು.",
+        "hi": "खाना ऑर्डर करना, मेनू के बारे में पूछना और बिल देना।"
+      },
+      "category": "food_drink",
+      "turns": [
+        {
+          "partnerPrompt": {
+            "en": "Hello! What would you like to have today?",
+            "kn": "ನಮಸ್ಕಾರ! ಇಂದು ನೀವು ಏನು ತೆಗೆದುಕೊಳ್ಳಲು ಬಯಸುತ್ತೀರಿ?",
+            "hi": "नमस्ते! आज आप क्या लेना पसंद करेंगे?"
+          },
+          "suggestions": {
+            "short": {
+              "en": "I want water and pizza.",
+              "kn": "ನನಗೆ ನೀರು ಮತ್ತು ಪಿಜ್ಜಾ ಬೇಕು.",
+              "hi": "मुझे पानी और पिज़्ज़ा चाहिए।"
+            },
+            "polite": {
+              "en": "Could I please have some water and a pizza?",
+              "kn": "ದಯವಿಟ್ಟು ನನಗೆ ನೀರು ಮತ್ತು ಪಿಜ್ಜಾ ಕೊಡುವಿರಾ?",
+              "hi": "कृपया मुझे पानी और एक पिज़्ज़ा दीजिए।"
+            },
+            "casual": {
+              "en": "I will take water and pizza, thanks.",
+              "kn": "ನಾನು ನೀರು ಮತ್ತು ಪಿಜ್ಜಾ ತೆಗೆದುಕೊಳ್ಳುವೆ, ಧನ್ಯವಾದಗಳು.",
+              "hi": "मैं पानी और पिज़्ज़ा लूँगा, धन्यवाद।"
+            }
+          },
+          "followUps": {
+            "detail": {
+              "en": "Is the pizza vegetarian?",
+              "kn": "ಪಿಜ್ಜಾ ಸಸ್ಯಾಹಾರಿ ಆಗಿದೆಯೇ?",
+              "hi": "क्या पिज़्ज़ा शाकाहारी है?"
+            },
+            "closing": {
+              "en": "Thank you, that is all for now.",
+              "kn": "ಧನ್ಯವಾದಗಳು, ಸದ್ಯಕ್ಕೆ ಇಷ್ಟೇ.",
+              "hi": "धन्यवाद, अभी के लिए बस इतना ही।"
+            },
+            "repair": {
+              "en": "That is not what I wanted to say.",
+              "kn": "ನಾನು ಹೇಳಲು ಬಯಸಿದ್ದು ಅದಲ್ಲ.",
+              "hi": "मैं यह नहीं कहना चाहता था।"
+            }
+          }
+        },
+        {
+          "partnerPrompt": {
+            "en": "Would you like anything else to drink or a dessert?",
+            "kn": "ಕುಡಿಯಲು ಬೇರೇನಾದರೂ ಬೇಕೆ ಅಥವಾ ಸಿಹಿತಿಂಡಿ ಬೇಕೆ?",
+            "hi": "क्या आप पीने के लिए कुछ और या मीठा पसंद करेंगे?"
+          },
+          "suggestions": {
+            "short": {
+              "en": "Just water, thank you.",
+              "kn": "ಕೇವಲ ನೀರು, ಧನ್ಯವಾದಗಳು.",
+              "hi": "सिर्फ पानी, धन्यवाद।"
+            },
+            "polite": {
+              "en": "No thank you, that is everything for me.",
+              "kn": "ಬೇಡ ಧನ್ಯವಾದಗಳು, ಇಷ್ಟೇ ಸಾಕು.",
+              "hi": "जी नहीं धन्यवाद, मेरे लिए बस इतना ही।"
+            },
+            "casual": {
+              "en": "I am good with this, thanks.",
+              "kn": "ಇಷ್ಟೇ ಸಾಕು, ಧನ್ಯವಾದಗಳು.",
+              "hi": "इतना काफी है, धन्यवाद।"
+            }
+          },
+          "followUps": {
+            "detail": {
+              "en": "Can I have the bill please?",
+              "kn": "ದಯವಿಟ್ಟು ಬಿಲ್ ಕೊಡಬಹುದೇ?",
+              "hi": "क्या मुझे बिल मिल सकता है?"
+            },
+            "closing": {
+              "en": "Thank you very much.",
+              "kn": "ತುಂಬಾ ಧನ್ಯವಾದಗಳು.",
+              "hi": "बहुत बहुत धन्यवाद।"
+            },
+            "repair": {
+              "en": "Please wait, let me check.",
+              "kn": "ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ, ನಾನು ನೋಡುತ್ತೇನೆ.",
+              "hi": "कृपया थोड़ा इंतज़ार करें, मैं देखता हूँ।"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "classroom",
+      "title": {
+        "en": "In the Classroom",
+        "kn": "ತರಗತಿ ಕೊಠಡಿಯಲ್ಲಿ",
+        "hi": "कक्षा में"
+      },
+      "description": {
+        "en": "Talking to the teacher, answering questions, asking for help.",
+        "kn": "ಶಿಕ್ಷಕರೊಂದಿಗೆ ಮಾತನಾಡುವುದು, ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸುವುದು, ಸಹಾಯ ಕೇಳುವುದು.",
+        "hi": "शिक्षक से बात करना, प्रश्नों के उत्तर देना, सहायता मांगना।"
+      },
+      "category": "school",
+      "turns": [
+        {
+          "partnerPrompt": {
+            "en": "Good morning! Did you finish your homework assignment?",
+            "kn": "ಶುಭೋದಯ! ನೀವು ನಿಮ್ಮ ಮನೆಕೆಲಸ ಮುಗಿಸಿದಿರಾ?",
+            "hi": "शुभ प्रभात! क्या आपने अपना गृहकार्य पूरा कर लिया?"
+          },
+          "suggestions": {
+            "short": {
+              "en": "Yes, I finished it.",
+              "kn": "ಹೌದು, ನಾನು ಮುಗಿಸಿದ್ದೇನೆ.",
+              "hi": "हाँ, मैंने पूरा कर लिया।"
+            },
+            "polite": {
+              "en": "Yes teacher, I completed the assignment.",
+              "kn": "ಹೌದು ಶಿಕ್ಷಕರೇ, ನಾನು ಮನೆಕೆಲಸ ಮುಗಿಸಿದ್ದೇನೆ.",
+              "hi": "हाँ शिक्षक महोदय, मैंने गृहकार्य पूरा कर लिया है।"
+            },
+            "casual": {
+              "en": "Yes, all done.",
+              "kn": "ಹೌದು, ಎಲ್ಲವೂ ಆಯಿತು.",
+              "hi": "हाँ, सब हो गया।"
+            }
+          },
+          "followUps": {
+            "detail": {
+              "en": "I had a question on the third problem.",
+              "kn": "ಮೂರನೇ ಸಮಸ್ಯೆಯ ಬಗ್ಗೆ ನನಗೆ ಒಂದು ಪ್ರಶ್ನೆ ಇದೆ.",
+              "hi": "मुझे तीसरे सवाल पर एक प्रश्न था।"
+            },
+            "closing": {
+              "en": "Thank you.",
+              "kn": "ಧನ್ಯವಾದಗಳು.",
+              "hi": "धन्यवाद।"
+            },
+            "repair": {
+              "en": "Let me try again.",
+              "kn": "ನಾನು ಇನ್ನೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸುತ್ತೇನೆ.",
+              "hi": "मुझे फिर से कोशिश करने दें।"
+            }
+          }
+        },
+        {
+          "partnerPrompt": {
+            "en": "Do you need help with this chapter?",
+            "kn": "ಈ ಅಧ್ಯಾಯದಲ್ಲಿ ನಿಮಗೆ ಸಹಾಯ ಬೇಕೇ?",
+            "hi": "क्या आपको इस पाठ में मदद चाहिए?"
+          },
+          "suggestions": {
+            "short": {
+              "en": "Yes, please help me.",
+              "kn": "ಹೌದು, ದಯವಿಟ್ಟು ನನಗೆ ಸಹಾಯ ಮಾಡಿ.",
+              "hi": "हाँ, कृपया मेरी मदद करें।"
+            },
+            "polite": {
+              "en": "Could you please explain this section to me?",
+              "kn": "ದಯವಿಟ್ಟು ಈ ಭಾಗವನ್ನು ವಿವರಿಸಬಹುದೇ?",
+              "hi": "क्या आप कृपया यह भाग समझा सकते हैं?"
+            },
+            "casual": {
+              "en": "I need some help here.",
+              "kn": "ನನಗೆ ಇಲ್ಲಿ ಸ್ವಲ್ಪ ಸಹಾಯ ಬೇಕು.",
+              "hi": "मुझे यहाँ थोड़ी मदद चाहिए।"
+            }
+          },
+          "followUps": {
+            "detail": {
+              "en": "Can I work with my classmate?",
+              "kn": "ನಾನು ನನ್ನ ಸಹಪಾಠಿಯೊಂದಿಗೆ ಕೆಲಸ ಮಾಡಬಹುದೇ?",
+              "hi": "क्या मैं अपने सहपाठी के साथ काम कर सकता हूँ?"
+            },
+            "closing": {
+              "en": "Thank you for explaining.",
+              "kn": "ವಿವರಿಸಿದ್ದಕ್ಕೆ ಧನ್ಯವಾದಗಳು.",
+              "hi": "समझाने के लिए धन्यवाद।"
+            },
+            "repair": {
+              "en": "Please wait.",
+              "kn": "ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ.",
+              "hi": "कृपया थोड़ा इंतज़ार करें।"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "clinic_visit",
+      "title": {
+        "en": "Doctor and Clinic Visit",
+        "kn": "ವೈದ್ಯರ ಭೇಟಿ ಮತ್ತು ಚಿಕಿತ್ಸಾಲಯ",
+        "hi": "डॉक्टर और क्लिनिक यात्रा"
+      },
+      "description": {
+        "en": "Explaining symptoms, answering the doctor, and getting medication.",
+        "kn": "ರೋಗಲಕ್ಷಣಗಳನ್ನು ವಿವರಿಸುವುದು, ವೈದ್ಯರಿಗೆ ಉತ್ತರಿಸುವುದು ಮತ್ತು ಔಷಧಿ ಪಡೆಯುವುದು.",
+        "hi": "लक्षण बताना, डॉक्टर को उत्तर देना और दवा लेना।"
+      },
+      "category": "health",
+      "turns": [
+        {
+          "partnerPrompt": {
+            "en": "Hello. How are you feeling today? Where does it hurt?",
+            "kn": "ನಮಸ್ಕಾರ. ಇಂದು ನಿಮಗೆ ಹೇಗನಿಸುತ್ತಿದೆ? ಎಲ್ಲಿ ನೋವಾಗುತ್ತಿದೆ?",
+            "hi": "नमस्ते। आज आप कैसा महसूस कर रहे हैं? कहाँ दर्द हो रहा है?"
+          },
+          "suggestions": {
+            "short": {
+              "en": "My head hurts.",
+              "kn": "ನನ್ನ ತಲೆ ನೋಯುತ್ತಿದೆ.",
+              "hi": "मेरे सिर में दर्द है।"
+            },
+            "polite": {
+              "en": "I have had a bad headache since morning.",
+              "kn": "ಬೆಳಿಗ್ಗೆಯಿಂದ ನನಗೆ ತಲೆನೋವು ಇದೆ.",
+              "hi": "मुझे सुबह से तेज सिरदर्द हो रहा है।"
+            },
+            "casual": {
+              "en": "Head hurts a lot.",
+              "kn": "ತಲೆ ತುಂಬಾ ನೋಯುತ್ತಿದೆ.",
+              "hi": "सिर बहुत दर्द कर रहा है।"
+            }
+          },
+          "followUps": {
+            "detail": {
+              "en": "I am also feeling dizzy and tired.",
+              "kn": "ನನಗೆ ತಲೆತಿರುಗುವಿಕೆ ಮತ್ತು ದಣಿವು ಕೂಡ ಇದೆ.",
+              "hi": "मुझे चक्कर और थकान भी महसूस हो रही है।"
+            },
+            "closing": {
+              "en": "Thank you doctor.",
+              "kn": "ಧನ್ಯವಾದಗಳು ವೈದ್ಯರೇ.",
+              "hi": "धन्यवाद डॉक्टर।"
+            },
+            "repair": {
+              "en": "I did not mean that.",
+              "kn": "ನಾನು ಹಾಗೆ ಹೇಳಲು ಉದ್ದೇಶಿಸಿರಲಿಲ್ಲ.",
+              "hi": "मेरा यह मतलब नहीं था।"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "playground",
+      "title": {
+        "en": "At the Playground",
+        "kn": "ಆಟದ ಮೈದಾನದಲ್ಲಿ",
+        "hi": "खेल के मैदान में"
+      },
+      "description": {
+        "en": "Inviting friends to play, taking turns on games, and having fun.",
+        "kn": "ಸ್ನೇಹಿತರನ್ನು ಆಟವಾಡಲು ಕರೆಯುವುದು, ಸರದಿ ತೆಗೆದುಕೊಳ್ಳುವುದು ಮತ್ತು ಮೋಜು ಮಾಡುವುದು.",
+        "hi": "दोस्तों को खेलने के लिए बुलाना, अपनी बारी लेना और मज़ा करना।"
+      },
+      "category": "play",
+      "turns": [
+        {
+          "partnerPrompt": {
+            "en": "Do you want to play ball with us?",
+            "kn": "ನೀವು ನಮ್ಮೊಂದಿಗೆ ಚೆಂಡಿನ ಆಟ ಆಡಲು ಬಯಸುತ್ತೀರಾ?",
+            "hi": "क्या आप हमारे साथ गेंद खेलना चाहते हैं?"
+          },
+          "suggestions": {
+            "short": {
+              "en": "Yes, I want to play.",
+              "kn": "ಹೌದು, ನಾನು ಆಡಲು ಬಯಸುತ್ತೇನೆ.",
+              "hi": "हाँ, मैं खेलना चाहता हूँ।"
+            },
+            "polite": {
+              "en": "Yes, I would love to join your game.",
+              "kn": "ಹೌದು, ನಾನು ನಿಮ್ಮ ಆಟದಲ್ಲಿ ಸೇರಲು ಇಷ್ಟಪಡುತ್ತೇನೆ.",
+              "hi": "हाँ, मैं आपके साथ खेलना पसंद करूँगा।"
+            },
+            "casual": {
+              "en": "Yes, pass the ball to me!",
+              "kn": "ಹೌದು, ಚೆಂಡನ್ನು ನನಗೆ ಪಾಸ್ ಮಾಡಿ!",
+              "hi": "हाँ, गेंद मेरी तरफ फेंको!"
+            }
+          },
+          "followUps": {
+            "detail": {
+              "en": "It is my turn now.",
+              "kn": "ಈಗ ನನ್ನ ಸರದಿ.",
+              "hi": "अब मेरी बारी है।"
+            },
+            "closing": {
+              "en": "That was fun, thank you.",
+              "kn": "ತುಂಬಾ ಮೋಜಿನ ಆಟ, ಧನ್ಯವಾದಗಳು.",
+              "hi": "बहुत मज़ा आया, धन्यवाद।"
+            },
+            "repair": {
+              "en": "Please wait for me.",
+              "kn": "ದಯವಿಟ್ಟು ನನಗಾಗಿ ಕಾಯಿರಿ.",
+              "hi": "कृपया मेरा इंतज़ार करें।"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "family_meal",
+      "title": {
+        "en": "Family Meal",
+        "kn": "ಕುಟುಂಬದ ಊಟ",
+        "hi": "परिवार का भोजन"
+      },
+      "description": {
+        "en": "Asking for dishes, praising the food, and sharing with family.",
+        "kn": "ತಿಂಡಿ ಪದಾರ್ಥಗಳನ್ನು ಕೇಳುವುದು, ಆಹಾರವನ್ನು ಹೊಗಳುವುದು ಮತ್ತು ಹಂಚಿಕೊಳ್ಳುವುದು.",
+        "hi": "व्यंजनों के लिए पूछना, खाने की तारीफ करना और परिवार के साथ बांटना।"
+      },
+      "category": "family",
+      "turns": [
+        {
+          "partnerPrompt": {
+            "en": "Dinner is served! Would you like some more rice or curry?",
+            "kn": "ಊಟ ಸಿದ್ಧವಾಗಿದೆ! ನಿಮಗೆ ಇನ್ನಷ್ಟು ಅನ್ನ ಅಥವಾ ಸಾರು ಬೇಕೇ?",
+            "hi": "खाना तैयार है! क्या आपको और चावल या दाल चाहिए?"
+          },
+          "suggestions": {
+            "short": {
+              "en": "A little more rice, please.",
+              "kn": "ಸ್ವಲ್ಪ ಹೆಚ್ಚು ಅನ್ನ, ದಯವಿಟ್ಟು.",
+              "hi": "थोड़ा और चावल, कृपया।"
+            },
+            "polite": {
+              "en": "Could you please pass the rice? It is delicious.",
+              "kn": "ದಯವಿಟ್ಟು ಅನ್ನ ಕೊಡುತ್ತೀರಾ? ಇದು ತುಂಬಾ ರುಚಿಯಾಗಿದೆ.",
+              "hi": "क्या आप कृपया चावल दे सकते हैं? यह बहुत स्वादिष्ट है।"
+            },
+            "casual": {
+              "en": "More rice please, tastes great.",
+              "kn": "ಇನ್ನಷ್ಟು ಅನ್ನ ಕೊಡಿ, ತುಂಬಾ ರುಚಿಯಾಗಿದೆ.",
+              "hi": "थोड़ा और चावल, बहुत अच्छा स्वाद है।"
+            }
+          },
+          "followUps": {
+            "detail": {
+              "en": "Can I have some water as well?",
+              "kn": "ನನಗೆ ಸ್ವಲ್ಪ ನೀರು ಕೂಡ ಸಿಗಬಹುದೇ?",
+              "hi": "क्या मुझे थोड़ा पानी भी मिल सकता है?"
+            },
+            "closing": {
+              "en": "I am full now, thank you.",
+              "kn": "ನನ್ನ ಹೊಟ್ಟೆ ತುಂಬಿದೆ, ಧನ್ಯವಾದಗಳು.",
+              "hi": "मेरा पेट भर गया, धन्यवाद।"
+            },
+            "repair": {
+              "en": "No, that is not what I meant.",
+              "kn": "ಇಲ್ಲ, ನಾನು ಹೇಳಲು ಉದ್ದೇಶಿಸಿದ್ದು ಅದಲ್ಲ.",
+              "hi": "नहीं, मेरा वह मतलब नहीं था।"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "shopping",
+      "title": {
+        "en": "Shopping",
+        "kn": "ಶಾಪಿಂಗ್ / ಖರೀದಿ",
+        "hi": "खरीदारी"
+      },
+      "description": {
+        "en": "Asking the shopkeeper for items, checking prices, and paying.",
+        "kn": "ಅಂಗಡಿಯವರನ್ನು ವಸ್ತುಗಳ ಬಗ್ಗೆ ಕೇಳುವುದು, ಬೆಲೆ ತಿಳಿಯುವುದು ಮತ್ತು ಹಣ ನೀಡುವುದು.",
+        "hi": "दुकानदार से सामान मांगना, कीमत पूछना और भुगतान करना।"
+      },
+      "category": "community",
+      "turns": [
+        {
+          "partnerPrompt": {
+            "en": "Can I help you find something today?",
+            "kn": "ಇಂದು ನಿಮಗೆ ಏನಾದರೂ ಹುಡುಕಲು ನಾನು ಸಹಾಯ ಮಾಡಬಹುದೇ?",
+            "hi": "क्या मैं आज कुछ खोजने में आपकी मदद कर सकता हूँ?"
+          },
+          "suggestions": {
+            "short": {
+              "en": "I am looking for apples.",
+              "kn": "ನಾನು ಸೇಬುಗಳನ್ನು ಹುಡುಕುತ್ತಿದ್ದೇನೆ.",
+              "hi": "मैं सेब ढूंढ रहा हूँ।"
+            },
+            "polite": {
+              "en": "Could you please show me where the fresh fruit is?",
+              "kn": "ತಾಜಾ ಹಣ್ಣುಗಳು ಎಲ್ಲಿವೆ ಎಂದು ದಯವಿಟ್ಟು ತೋರಿಸುವಿರಾ?",
+              "hi": "क्या आप कृपया मुझे बता सकते हैं कि ताजे फल कहाँ हैं?"
+            },
+            "casual": {
+              "en": "Where are the apples?",
+              "kn": "ಸೇಬುಗಳು ಎಲ್ಲಿವೆ?",
+              "hi": "सेब कहाँ हैं?"
+            }
+          },
+          "followUps": {
+            "detail": {
+              "en": "How much does this cost?",
+              "kn": "ಇದರ ಬೆಲೆ ಎಷ್ಟು?",
+              "hi": "इसकी कीमत क्या है?"
+            },
+            "closing": {
+              "en": "I will buy this, thank you.",
+              "kn": "ನಾನು ಇದನ್ನು ಖರೀದಿಸುತ್ತೇನೆ, ಧನ್ಯವಾದಗಳು.",
+              "hi": "मैं यह खरीदूँगा, धन्यवाद।"
+            },
+            "repair": {
+              "en": "Let me look again.",
+              "kn": "ನಾನು ಇನ್ನೊಮ್ಮೆ ನೋಡುತ್ತೇನೆ.",
+              "hi": "मुझे फिर से देखने दें।"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "public_transport",
+      "title": {
+        "en": "Public Transport",
+        "kn": "ಸಾರ್ವಜನಿಕ ಸಾರಿಗೆ",
+        "hi": "सार्वजनिक परिवहन"
+      },
+      "description": {
+        "en": "Buying a ticket, asking for directions, and finding the right bus or train.",
+        "kn": "ಟಿಕೆಟ್ ಕೊಳ್ಳುವುದು, ಮಾರ್ಗ ಕೇಳುವುದು ಮತ್ತು ಸರಿಯಾದ ಬಸ್ ಅಥವಾ ರೈಲು ತಿಳಿಯುವುದು.",
+        "hi": "टिकट खरीदना, रास्ता पूछना और सही बस या ट्रेन ढूंढना।"
+      },
+      "category": "travel",
+      "turns": [
+        {
+          "partnerPrompt": {
+            "en": "Where would you like a ticket to?",
+            "kn": "ನೀವು ಎಲ್ಲಿಗೆ ಟಿಕೆಟ್ ಪಡೆಯಲು ಬಯಸುತ್ತೀರಿ?",
+            "hi": "आप कहाँ के लिए टिकट चाहते हैं?"
+          },
+          "suggestions": {
+            "short": {
+              "en": "One ticket to the central station, please.",
+              "kn": "ಕೇಂದ್ರ ನಿಲ್ದಾಣಕ್ಕೆ ಒಂದು ಟಿಕೆಟ್, ದಯವಿಟ್ಟು.",
+              "hi": "सेंट्रल स्टेशन के लिए एक टिकट, कृपया।"
+            },
+            "polite": {
+              "en": "Could I please get one ticket to the central station?",
+              "kn": "ದಯವಿಟ್ಟು ಕೇಂದ್ರ ನಿಲ್ದಾಣಕ್ಕೆ ಒಂದು ಟಿಕೆಟ್ ಕೊಡುವಿರಾ?",
+              "hi": "कृपया सेंट्रल स्टेशन के लिए एक टिकट दीजिए।"
+            },
+            "casual": {
+              "en": "Central station ticket, thanks.",
+              "kn": "ಕೇಂದ್ರ ನಿಲ್ದಾಣದ ಟಿಕೆಟ್, ಧನ್ಯವಾದಗಳು.",
+              "hi": "सेंट्रल स्टेशन का टिकट, धन्यवाद।"
+            }
+          },
+          "followUps": {
+            "detail": {
+              "en": "Which platform does the bus leave from?",
+              "kn": "ಬಸ್ ಯಾವ ಪ್ಲಾಟ್‌ಫಾರ್ಮ್‌ನಿಂದ ಹೊರಡುತ್ತದೆ?",
+              "hi": "बस किस प्लेटफॉर्म से रवाना होती है?"
+            },
+            "closing": {
+              "en": "Thank you for your assistance.",
+              "kn": "ನಿಮ್ಮ ಸಹಾಯಕ್ಕೆ ಧನ್ಯವಾದಗಳು.",
+              "hi": "आपकी सहायता के लिए धन्यवाद।"
+            },
+            "repair": {
+              "en": "Please wait, let me check the station name.",
+              "kn": "ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ, ನಾನು ನಿಲ್ದಾಣದ ಹೆಸರು ನೋಡುತ್ತೇನೆ.",
+              "hi": "कृपया रुकें, मुझे स्टेशन का नाम देखने दें।"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "meeting_new_person",
+      "title": {
+        "en": "Meeting a New Person",
+        "kn": "ಹೊಸ ವ್ಯಕ್ತಿಯನ್ನು ಭೇಟಿಯಾಗುವುದು",
+        "hi": "किसी नए व्यक्ति से मिलना"
+      },
+      "description": {
+        "en": "Introducing yourself, explaining how you communicate, and making friends.",
+        "kn": "ನಿಮ್ಮನ್ನು ಪರಿಚಯಿಸಿಕೊಳ್ಳುವುದು, ನೀವು ಹೇಗೆ ಸಂವಹನ ನಡೆಸುತ್ತೀರಿ ಎಂದು ತಿಳಿಸುವುದು ಮತ್ತು ಸ್ನೇಹ ಮಾಡುವುದು.",
+        "hi": "अपना परिचय देना, बताना कि आप कैसे बात करते हैं, और दोस्ती करना।"
+      },
+      "category": "social",
+      "turns": [
+        {
+          "partnerPrompt": {
+            "en": "Hi there! Nice to meet you. What is your name?",
+            "kn": "ನಮಸ್ಕಾರ! ನಿಮ್ಮನ್ನು ಭೇಟಿಯಾಗಿದ್ದಕ್ಕೆ ಸಂತೋಷ. ನಿಮ್ಮ ಹೆಸರೇನು?",
+            "hi": "नमस्ते! आपसे मिलकर खुशी हुई। आपका नाम क्या है?"
+          },
+          "suggestions": {
+            "short": {
+              "en": "Hello, nice to meet you.",
+              "kn": "ನಮಸ್ಕಾರ, ನಿಮ್ಮನ್ನು ಭೇಟಿಯಾಗಿದ್ದಕ್ಕೆ ಸಂತೋಷ.",
+              "hi": "नमस्ते, आपसे मिलकर खुशी हुई।"
+            },
+            "polite": {
+              "en": "Hello! I use this app to communicate. Nice to meet you.",
+              "kn": "ನಮಸ್ಕಾರ! ನಾನು ಸಂವಹನ ಮಾಡಲು ಈ ಆ್ಯಪ್ ಬಳಸುತ್ತೇನೆ. ನಿಮ್ಮನ್ನು ಭೇಟಿಯಾಗಿದ್ದಕ್ಕೆ ಸಂತೋಷ.",
+              "hi": "नमस्ते! मैं बात करने के लिए इस ऐप का उपयोग करता हूँ। आपसे मिलकर खुशी हुई।"
+            },
+            "casual": {
+              "en": "Hi! Happy to connect with you.",
+              "kn": "ಹಾಯ್! ನಿಮ್ಮೊಂದಿಗೆ ಮಾತನಾಡಲು ಸಂತೋಷವಾಗಿದೆ.",
+              "hi": "नमस्ते! आपसे जुड़कर बहुत अच्छा लगा।"
+            }
+          },
+          "followUps": {
+            "detail": {
+              "en": "I can hear everything you say clearly.",
+              "kn": "ನೀವು ಹೇಳುವ ಎಲ್ಲವನ್ನೂ ನಾನು ಸ್ಪಷ್ಟವಾಗಿ ಕೇಳಬಲ್ಲೆ.",
+              "hi": "आप जो कहते हैं, मैं सब साफ सुन सकता हूँ।"
+            },
+            "closing": {
+              "en": "It was wonderful talking with you.",
+              "kn": "ನಿಮ್ಮೊಂದಿಗೆ ಮಾತನಾಡಿದ್ದು ತುಂಬಾ ಚೆನ್ನಾಗಿತ್ತು.",
+              "hi": "आपसे बात करके बहुत अच्छा लगा।"
+            },
+            "repair": {
+              "en": "Please wait, let me type.",
+              "kn": "ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ, ನಾನು ಆಯ್ಕೆ ಮಾಡುತ್ತೇನೆ.",
+              "hi": "कृपया थोड़ा इंतज़ार करें, मैं चुन रहा हूँ।"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

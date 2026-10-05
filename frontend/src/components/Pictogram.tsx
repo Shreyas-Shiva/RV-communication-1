@@ -172,6 +172,7 @@ export const Pictogram: React.FC<PictogramProps> = ({
         );
 
       case 'doctor':
+      case 'hospital':
         return (
           <g>
             <circle cx="50" cy="34" r="16" fill="#FDE68A" stroke={charcoal} strokeWidth="2.5" />
@@ -309,7 +310,7 @@ export const Pictogram: React.FC<PictogramProps> = ({
       case 'scared':
         return (
           <g>
-            <circle cx="50" cy="50" r="30" fill="#DDD6FE" stroke="#5B21B6" strokeWidth="3" />
+            <circle cx="50" cy="50" r="30" fill="#DCEBFA" stroke="#2F78BD" strokeWidth="3" />
             <circle cx="38" cy="40" r="6" fill={white} stroke={charcoal} strokeWidth="2" />
             <circle cx="62" cy="40" r="6" fill={white} stroke={charcoal} strokeWidth="2" />
             <circle cx="38" cy="40" r="2.5" fill={charcoal} />
@@ -319,6 +320,7 @@ export const Pictogram: React.FC<PictogramProps> = ({
         );
 
       case 'home':
+      case 'home_place':
         return (
           <g>
             <polygon points="50,16 16,44 24,44 24,80 76,80 76,44 84,44" fill="#FEF3C7" stroke={charcoal} strokeWidth="3" strokeLinejoin="round" />
@@ -387,8 +389,11 @@ export const Pictogram: React.FC<PictogramProps> = ({
         );
 
       case 'school':
+      case 'school_place':
       case 'college':
+      case 'college_place':
       case 'building':
+      case 'public_place_card':
         return (
           <g>
             <polygon points="50,14 18,36 82,36" fill="#991B1B" stroke={charcoal} strokeWidth="3" strokeLinejoin="round" />
@@ -411,6 +416,7 @@ export const Pictogram: React.FC<PictogramProps> = ({
         );
 
       case 'playground':
+      case 'playground_place':
         return (
           <g>
             <line x1="20" y1="78" x2="44" y2="24" stroke={charcoal} strokeWidth="3.5" strokeLinecap="round" />
@@ -473,6 +479,8 @@ export const Pictogram: React.FC<PictogramProps> = ({
         );
 
       case 'check_yes':
+      case 'yes_card':
+      case 'yes':
         return (
           <g>
             <circle cx="50" cy="50" r="32" fill="#DCFCE7" stroke={green} strokeWidth="3" />
@@ -481,6 +489,8 @@ export const Pictogram: React.FC<PictogramProps> = ({
         );
 
       case 'cross_no':
+      case 'no_card':
+      case 'no':
         return (
           <g>
             <circle cx="50" cy="50" r="32" fill="#FEE2E2" stroke={red} strokeWidth="3" />
@@ -490,6 +500,8 @@ export const Pictogram: React.FC<PictogramProps> = ({
         );
 
       case 'plus_more':
+      case 'more_card':
+      case 'more':
         return (
           <g>
             <circle cx="50" cy="50" r="32" fill="#E0F2FE" stroke={blue} strokeWidth="3" />
@@ -499,6 +511,8 @@ export const Pictogram: React.FC<PictogramProps> = ({
         );
 
       case 'stop_sign':
+      case 'stop_card':
+      case 'stop':
         return (
           <g>
             <polygon points="32,16 68,16 84,32 84,68 68,84 32,84 16,68 16,32" fill={red} stroke={charcoal} strokeWidth="3" />
@@ -507,6 +521,8 @@ export const Pictogram: React.FC<PictogramProps> = ({
         );
 
       case 'briefcase':
+      case 'work_place':
+      case 'work':
         return (
           <g>
             <rect x="20" y="34" width="60" height="44" rx="4" fill="#94A3B8" stroke={charcoal} strokeWidth="3" />
@@ -527,6 +543,8 @@ export const Pictogram: React.FC<PictogramProps> = ({
         );
 
       case 'cart':
+      case 'shopping_card':
+      case 'shop':
         return (
           <g>
             <polyline points="18,24 28,24 40,60 74,60 82,34 32,34" fill="#F8FAFC" stroke={charcoal} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
@@ -535,18 +553,22 @@ export const Pictogram: React.FC<PictogramProps> = ({
           </g>
         );
 
-      default:
-        // Accessible labelled placeholder for any unspecified card - never a broken image!
+      default: {
+        const cleanLabel = fallbackLabel || (alt ? alt.split(' ')[0] : '');
+        const safeText = cleanLabel.replace(/_/g, ' ').slice(0, 12);
         return (
           <g>
             <rect x="12" y="12" width="76" height="76" rx="12" fill="#F4F1DE" stroke={teal} strokeWidth="2.5" strokeDasharray="4 4" />
             <circle cx="50" cy="44" r="16" fill="#E2E8F0" stroke={charcoal} strokeWidth="2" />
             <text x="50" y="49" fontSize="14" fontWeight="bold" textAnchor="middle" fill={teal}>?</text>
-            <text x="50" y="74" fontSize="10" fontWeight="bold" textAnchor="middle" fill={charcoal}>
-              {fallbackLabel || name}
-            </text>
+            {safeText && !safeText.includes('_') && (
+              <text x="50" y="74" fontSize="10" fontWeight="bold" textAnchor="middle" fill={charcoal}>
+                {safeText}
+              </text>
+            )}
           </g>
         );
+      }
     }
   };
 

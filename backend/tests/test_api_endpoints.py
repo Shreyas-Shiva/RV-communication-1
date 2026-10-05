@@ -125,3 +125,51 @@ def test_sign_endpoints():
     assert "sign" in res_data
     assert "confidence" in res_data
     assert "label" in res_data
+
+def test_sentence_options_endpoint():
+    payload = {
+        "item": "pizza",
+        "language": "en-IN",
+        "ageGroup": "adult",
+        "tone": "polite",
+        "wording": "neutral"
+    }
+    res = client.post("/api/ai/sentence-options", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert "options" in data
+    assert len(data["options"]) >= 3
+    assert any("pizza" in opt["text"].lower() for opt in data["options"])
+    assert data["options"][0]["grammarChecked"] is True
+
+def test_continue_endpoint():
+    payload = {
+        "lastSentence": "I would like some pizza, please.",
+        "language": "en-IN",
+        "ageGroup": "adult",
+        "tone": "polite"
+    }
+    res = client.post("/api/ai/continue", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert "options" in data
+    assert "repairOptions" in data
+    assert len(data["options"]) >= 3
+    assert len(data["repairOptions"]) >= 4
+    assert any("again" in opt["text"].lower() for opt in data["repairOptions"])
+
+def test_sign_analyze_endpoint():
+    # Test POST /api/sign/analyze endpoint
+    res = client.post("/api/sign/analyze", json={})
+    assert res.status_code == 200
+    data = res.json()
+    assert "transcript" in data
+    assert data["transcript"] == "I need water"
+    assert data["sign"] == "water"
+    assert data["confidence"] >= 0.9
+
+    # Test with custom mockTranscript
+    res2 = client.post("/api/sign/analyze", json={"mockTranscript": "Hello, thank you"})
+    assert res2.status_code == 200
+    data2 = res2.json()
+    assert data2["transcript"] == "Hello, thank you"

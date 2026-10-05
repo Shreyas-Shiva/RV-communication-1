@@ -54,11 +54,43 @@ export const kn: Translations = {
   privacy: "ಗೌಪ್ಯತಾ ನೀತಿ",
   terms: "ಬಳಕೆಯ ನಿಯಮಗಳು",
 
-  // Helper lines
+  // Helper lines - one short natural instruction per screen
   helperWhereAmI: "ನಾನು ಎಲ್ಲಿದ್ದೇನೆ?",
   helperWhatCanISay: "ನಾನು ಏನು ಹೇಳಬಹುದು?",
   helperWhatShouldITap: "ನಾನು ಎಲ್ಲಿ ಟ್ಯಾಪ್ ಮಾಡಬೇಕು?",
   helperWhatHappensNext: "ಮುಂದೆ ಏನಾಗುತ್ತದೆ?",
+  homeInstruction: "ಕಾರ್ಡ್ ಆರಿಸಿ ಅಥವಾ ಸಂಭಾಷಣೆ ಆರಂಭಿಸಿ.",
+  communicateInstruction: "ವಾಕ್ಯ ರಚಿಸಲು ಚಿತ್ರದ ಮೇಲೆ ಒತ್ತಿರಿ.",
+  talkInstruction: "ಇನ್ನೊಬ್ಬರೊಂದಿಗೆ ಸರದಿಯಲ್ಲಿ ಮಾತನಾಡಿ.",
+  practiceInstruction: "ನಿಮ್ಮ ವೇಗದಲ್ಲಿ ಪದಗಳನ್ನು ಅಭ್ಯಾಸ ಮಾಡಿ.",
+  myDayInstruction: "ಇಂದು ನೀವು ಮಾತನಾಡಿದ್ದನ್ನು ಪರಿಶೀಲಿಸಿ.",
+  settingsInstruction: "ಧ್ವನಿ, ಪರದೆ ಮತ್ತು ಗೌಪ್ಯತೆಯನ್ನು ಬದಲಿಸಿ.",
+  emergencyInstruction: "ತುರ್ತು ಸಹಾಯಕ್ಕಾಗಿ ತಕ್ಷಣ ಒತ್ತಿರಿ.",
+
+  // New settings
+  speakOnTapLabel: "ಚಿತ್ರ ಒತ್ತಿದಾಗ ಪದವನ್ನು ಧ್ವನಿಯಲ್ಲಿ ಹೇಳಿ",
+  speakOnTapDesc: "ಯಾವುದೇ ಕಾರ್ಡ್ ಒತ್ತಿದಾಗ ತಕ್ಷಣವೇ ಆ ಪದ ಕೇಳಿ.",
+  screenDensityLabel: "ಪರದೆಯ ಗಾತ್ರ (ಸಾಂದ್ರತೆ)",
+  densityCompact: "ಕಾಂಪ್ಯಾಕ್ಟ್ (ಸಣ್ಣದು)",
+  densityComfortable: "ಆರಾಮದಾಯಕ",
+  densityLarge: "ದೊಡ್ಡದು",
+  wordingForMeLabel: "ನನಗಾಗಿ ವಾಕ್ಯ ಶೈಲಿ (ಹಿಂದಿ)",
+  wordingNeutral: "ತಟಸ್ಥ (ಸಾಮಾನ್ಯ)",
+  wordingMasculine: "ಪುಲ್ಲಿಂಗ",
+  wordingFeminine: "ಸ್ತ್ರೀಲಿಂಗ",
+
+  // Sentence Tray
+  sentenceTrayTitle: "ವಾಕ್ಯ ಟ್ರೇ",
+  sayIt: "ಹೇಳಿ",
+  makeItASentence: "ಪೂರ್ಣ ವಾಕ್ಯ ಮಾಡಿ",
+  undo: "ಹಿಂದಕ್ಕೆ",
+  trayFullNotice: "ಟ್ರೇ ಭರ್ತಿಯಾಗಿದೆ (ಗರಿಷ್ಠ 6 ಪದಗಳು).",
+
+  // Continuation & You could say
+  youCouldSayTitle: "ನೀವು ಹೀಗೆ ಹೇಳಬಹುದು",
+  moreIdeasTitle: "ಹೆಚ್ಚಿನ ಆಲೋಚನೆಗಳು",
+  keepGoingTitle: "ಮುಂದುವರಿಸಿ",
+  repairTitle: "ತಿದ್ದುಪಡಿ ಮಾಡಿ",
 
   // Home Screen
   childGreeting: "ನಮಸ್ಕಾರ ಗೆಳೆಯ! ಒಟ್ಟಿಗೆ ಮಾತನಾಡೋಣ.",

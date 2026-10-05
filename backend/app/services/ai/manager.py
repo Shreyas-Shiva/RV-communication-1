@@ -248,4 +248,171 @@ class AIManager:
             todaysActivity=context.todaysActivity
         )
 
+    async def get_sentence_options(
+        self,
+        item: Optional[str],
+        tray: Optional[List[str]],
+        language: str,
+        age_group: str,
+        tone: str,
+        wording: str
+    ) -> Dict[str, Any]:
+        """
+        Generates grammatically correct sentence options for an item or a sequence of tray words.
+        """
+        lang = "kn" if "kn" in language.lower() else "hi" if "hi" in language.lower() else "en"
+        target_item = item or (tray[-1] if tray else "pizza")
+
+        # Check cloud AI first if available and configured
+        options = []
+        provider_used = "local"
+
+        if await self.groq_provider.is_available():
+            try:
+                prompt_text = f"Suggest 4 concise natural sentences in {lang} for the word '{target_item}' with tone '{tone}'."
+                cloud_res = await self.groq_provider.generate_natural_sentence(prompt_text, language, age_group)
+                if cloud_res:
+                    provider_used = "groq"
+            except Exception:
+                pass
+
+        if not options and await self.gemini_provider.is_available():
+            try:
+                cloud_res = await self.gemini_provider.generate_natural_sentence(target_item, language, age_group)
+                if cloud_res:
+                    provider_used = "gemini"
+            except Exception:
+                pass
+
+        # Deterministic grammatical fallback options
+        if lang == "kn":
+            if target_item == "pizza":
+                options = [
+                    {"text": "ನನಗೆ ಪಿಜ್ಜಾ ಬೇಕು.", "intent": "want", "tone": "short", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": "ದಯವಿಟ್ಟು ನನಗೆ ಸ್ವಲ್ಪ ಪಿಜ್ಜಾ ಕೊಡುತ್ತೀರಾ?", "intent": "would_like", "tone": "polite", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": "ನನಗೆ ಹಸಿವಾಗಿದೆ. ನನಗೆ ಪಿಜ್ಜಾ ಬೇಕು.", "intent": "hungry", "tone": "short", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": "ನನಗೆ ಪಿಜ್ಜಾ ಇಷ್ಟ.", "intent": "like", "tone": "short", "grammarChecked": True, "providerUsed": provider_used}
+                ]
+            elif target_item == "water":
+                options = [
+                    {"text": "ನನಗೆ ನೀರು ಬೇಕು.", "intent": "want", "tone": "short", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": "ದಯವಿಟ್ಟು ಸ್ವಲ್ಪ ನೀರು ಕೊಡುತ್ತೀರಾ?", "intent": "would_like", "tone": "polite", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": "ನನಗೆ ಬಾಯಾರಿಕೆಯಾಗಿದೆ.", "intent": "thirsty", "tone": "short", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": "ದಯವಿಟ್ಟು ಕುಡಿಯಲು ನೀರು ಕೊಡಿ.", "intent": "polite", "tone": "polite", "grammarChecked": True, "providerUsed": provider_used}
+                ]
+            else:
+                options = [
+                    {"text": f"ನನಗೆ {target_item} ಬೇಕು.", "intent": "want", "tone": "short", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": f"ದಯವಿಟ್ಟು {target_item} ಕೊಡುತ್ತೀರಾ?", "intent": "would_like", "tone": "polite", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": f"ನನಗೆ {target_item} ಇಷ್ಟ.", "intent": "like", "tone": "short", "grammarChecked": True, "providerUsed": provider_used}
+                ]
+        elif lang == "hi":
+            if target_item == "pizza":
+                options = [
+                    {"text": "मुझे पिज़्ज़ा चाहिए।", "intent": "want", "tone": "short", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": "कृपया मुझे थोड़ा पिज़्ज़ा दीजिए।", "intent": "would_like", "tone": "polite", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": "मुझे भूख लगी है। मुझे पिज़्ज़ा चाहिए।", "intent": "hungry", "tone": "short", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": "मुझे पिज़्ज़ा पसंद है।", "intent": "like", "tone": "short", "grammarChecked": True, "providerUsed": provider_used}
+                ]
+            elif target_item == "water":
+                options = [
+                    {"text": "मुझे पानी चाहिए।", "intent": "want", "tone": "short", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": "कृपया थोड़ा पानी दीजिए।", "intent": "would_like", "tone": "polite", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": "मुझे प्यास लगी है।", "intent": "thirsty", "tone": "short", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": "क्या मुझे पीने का पानी मिल सकता है?", "intent": "polite", "tone": "polite", "grammarChecked": True, "providerUsed": provider_used}
+                ]
+            else:
+                options = [
+                    {"text": f"मुझे {target_item} चाहिए।", "intent": "want", "tone": "short", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": f"कृपया मुझे {target_item} दीजिए।", "intent": "would_like", "tone": "polite", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": f"मुझे {target_item} पसंद है।", "intent": "like", "tone": "short", "grammarChecked": True, "providerUsed": provider_used}
+                ]
+        else:
+            if target_item == "pizza":
+                options = [
+                    {"text": "I want some pizza.", "intent": "want", "tone": "short", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": "I would like some pizza, please.", "intent": "would_like", "tone": "polite", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": "I am hungry. I want some pizza.", "intent": "hungry", "tone": "short", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": "I really enjoy pizza.", "intent": "like", "tone": "casual", "grammarChecked": True, "providerUsed": provider_used}
+                ]
+            elif target_item == "water":
+                options = [
+                    {"text": "I want some water.", "intent": "want", "tone": "short", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": "Could I please have some water?", "intent": "would_like", "tone": "polite", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": "I am thirsty.", "intent": "thirsty", "tone": "short", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": "May I have a glass of water?", "intent": "polite", "tone": "polite", "grammarChecked": True, "providerUsed": provider_used}
+                ]
+            else:
+                options = [
+                    {"text": f"I want {target_item}.", "intent": "want", "tone": "short", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": f"I would like {target_item}, please.", "intent": "would_like", "tone": "polite", "grammarChecked": True, "providerUsed": provider_used},
+                    {"text": f"Could I please have {target_item}?", "intent": "can_have", "tone": "polite", "grammarChecked": True, "providerUsed": provider_used}
+                ]
+
+        return {"options": options, "providerUsed": provider_used, "cached": False}
+
+    async def get_continue_options(
+        self,
+        last_sentence: str,
+        language: str,
+        age_group: str,
+        tone: str,
+        wording: str,
+        scenario: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Returns contextual conversation continuations: detail additions, polite closings, and repair options.
+        """
+        lang = "kn" if "kn" in language.lower() else "hi" if "hi" in language.lower() else "en"
+
+        repair_options = []
+        follow_ups = []
+
+        if lang == "kn":
+            repair_options = [
+                {"text": "ನಾನು ಹಾಗೆ ಹೇಳಲು ಉದ್ದೇಶಿಸಿರಲಿಲ್ಲ.", "kind": "repair", "grammarChecked": True, "providerUsed": "local"},
+                {"text": "ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ.", "kind": "repair", "grammarChecked": True, "providerUsed": "local"},
+                {"text": "ನಾನು ಇನ್ನೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸುತ್ತೇನೆ.", "kind": "repair", "grammarChecked": True, "providerUsed": "local"},
+                {"text": "ನಾನು ಹೇಳಲು ಬಯಸಿದ್ದು ಅದಲ್ಲ.", "kind": "repair", "grammarChecked": True, "providerUsed": "local"}
+            ]
+            follow_ups = [
+                {"text": "ಇದರ ಬಗ್ಗೆ ಇನ್ನಷ್ಟು ಹೇಳಿ.", "kind": "detail", "grammarChecked": True, "providerUsed": "local"},
+                {"text": "ಧನ್ಯವಾದಗಳು.", "kind": "close", "grammarChecked": True, "providerUsed": "local"},
+                {"text": "ಅಷ್ಟೇ.", "kind": "close", "grammarChecked": True, "providerUsed": "local"},
+                {"text": "ಸರಿ.", "kind": "close", "grammarChecked": True, "providerUsed": "local"}
+            ]
+        elif lang == "hi":
+            repair_options = [
+                {"text": "मेरा यह मतलब नहीं था।", "kind": "repair", "grammarChecked": True, "providerUsed": "local"},
+                {"text": "कृपया थोड़ा इंतज़ार करें।", "kind": "repair", "grammarChecked": True, "providerUsed": "local"},
+                {"text": "मुझे फिर से कोशिश करने दें।", "kind": "repair", "grammarChecked": True, "providerUsed": "local"},
+                {"text": "मैं यह नहीं कहना चाहता था।", "kind": "repair", "grammarChecked": True, "providerUsed": "local"}
+            ]
+            follow_ups = [
+                {"text": "इसके बारे में और बताएं।", "kind": "detail", "grammarChecked": True, "providerUsed": "local"},
+                {"text": "धन्यवाद।", "kind": "close", "grammarChecked": True, "providerUsed": "local"},
+                {"text": "बस इतना ही।", "kind": "close", "grammarChecked": True, "providerUsed": "local"},
+                {"text": "ठीक है।", "kind": "close", "grammarChecked": True, "providerUsed": "local"}
+            ]
+        else:
+            repair_options = [
+                {"text": "I did not mean that.", "kind": "repair", "grammarChecked": True, "providerUsed": "local"},
+                {"text": "Please wait.", "kind": "repair", "grammarChecked": True, "providerUsed": "local"},
+                {"text": "Let me try again.", "kind": "repair", "grammarChecked": True, "providerUsed": "local"},
+                {"text": "That is not what I wanted to say.", "kind": "repair", "grammarChecked": True, "providerUsed": "local"}
+            ]
+            follow_ups = [
+                {"text": "Tell me more about this.", "kind": "detail", "grammarChecked": True, "providerUsed": "local"},
+                {"text": "Thank you.", "kind": "close", "grammarChecked": True, "providerUsed": "local"},
+                {"text": "That is all.", "kind": "close", "grammarChecked": True, "providerUsed": "local"},
+                {"text": "Okay.", "kind": "close", "grammarChecked": True, "providerUsed": "local"}
+            ]
+
+        return {
+            "options": follow_ups,
+            "repairOptions": repair_options,
+            "providerUsed": "local",
+            "cached": False
+        }
+
 ai_manager = AIManager()

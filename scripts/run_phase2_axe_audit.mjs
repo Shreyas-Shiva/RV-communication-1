@@ -1,5 +1,4 @@
-import { chromium } from 'playwright';
-import AxeBuilder from '@axe-core/playwright';
+import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -10,6 +9,10 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 const frontendDir = path.resolve(projectRoot, 'frontend');
 const screenshotsDir = path.resolve(projectRoot, 'screenshots');
+
+const require = createRequire(import.meta.url);
+const { chromium } = require(path.join(frontendDir, 'node_modules', 'playwright'));
+const AxeBuilder = require(path.join(frontendDir, 'node_modules', '@axe-core', 'playwright')).default;
 
 if (!fs.existsSync(screenshotsDir)) {
   fs.mkdirSync(screenshotsDir, { recursive: true });
@@ -30,6 +33,9 @@ async function waitForServer(url, timeoutMs = 25000) {
 }
 
 async function setPreferences(page, lang, mode, enableAI = false) {
+  if (page.url() === 'about:blank' || !page.url().startsWith('http://localhost:4173')) {
+    await page.goto('http://localhost:4173/', { waitUntil: 'networkidle' });
+  }
   await page.evaluate(
     async ({ l, m, ai }) => {
       return new Promise((resolve, reject) => {

@@ -33,6 +33,26 @@ export interface ConversationThread {
   turns: ConversationTurn[];
 }
 
+export interface CustomCardRecord {
+  id: string;
+  labels: {
+    en: string;
+    kn: string;
+    hi: string;
+  };
+  spokenText: {
+    en: string;
+    kn: string;
+    hi: string;
+  };
+  wordClass: string;
+  folderId: string;
+  photoDataUrl?: string;
+  svgIcon?: string;
+  slotIndex?: number;
+  createdAt: number;
+}
+
 export interface UserPreferences {
   id: string; // key: 'current'
   language: LanguageCode;
@@ -54,12 +74,53 @@ export interface UserPreferences {
   enableAI: boolean;
   enableGemini: boolean;
   demoMode: boolean;
+  speakOnTap: boolean;
+  screenDensity: 'compact' | 'comfortable' | 'large';
+  wordingForMe: 'neutral' | 'masculine' | 'feminine';
+  vocabLevel: 1 | 2 | 3;
+  gridSize: 'fewer' | 'standard' | 'more';
+  pinSalt?: string;
+  pinHash?: string;
+  failedPinAttempts?: number;
+  pinLockUntil?: number;
+  tapToSpeak: 'instant' | 'after_say_it';
+}
+
+export function generateSalt(): string {
+  const bytes = new Uint8Array(16);
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < 16; i++) {
+      bytes[i] = Math.floor(Math.random() * 256);
+    }
+  }
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+export async function hashPin(pin: string, salt: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(salt + ':' + pin);
+  if (typeof crypto !== 'undefined' && crypto.subtle) {
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+  let hash = 0;
+  const str = salt + ':' + pin;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash |= 0;
+  }
+  return Math.abs(hash).toString(16).padStart(32, '0');
 }
 
 export class CommuniqDatabase extends Dexie {
   activityLogs!: EntityTable<ActivityRecord, 'id'>;
   userPreferences!: EntityTable<UserPreferences, 'id'>;
   conversationThreads!: EntityTable<ConversationThread, 'id'>;
+  customCards!: EntityTable<CustomCardRecord, 'id'>;
 
   constructor() {
     super('CommuniqDatabase');
@@ -72,10 +133,20 @@ export class CommuniqDatabase extends Dexie {
       userPreferences: 'id',
       conversationThreads: 'id, updatedAt, language'
     });
+    this.version(3).stores({
+      activityLogs: '++id, timestamp, dateKey, language, category, speaker, isFavorite, isSynced',
+      userPreferences: 'id',
+      conversationThreads: 'id, updatedAt, language',
+      customCards: 'id, folderId, createdAt'
+    });
   }
 }
 
 export const db = new CommuniqDatabase();
+
+if (typeof window !== 'undefined') {
+  (window as unknown as { __communiq_db?: CommuniqDatabase }).__communiq_db = db;
+}
 
 export const DEFAULT_PREFERENCES: UserPreferences = {
   id: 'current',
@@ -89,7 +160,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   highContrast: false,
   darkMode: false,
   reducedMotion: false,
-  soundEffects: true,
+  soundEffects: false,
   largeAndSimple: false,
   parentConsentGiven: false,
   onboardingCompleted: false,
@@ -97,12 +168,22 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   starsCount: 0,
   enableAI: false,
   enableGemini: false,
-  demoMode: false
+  demoMode: false,
+  speakOnTap: true,
+  screenDensity: 'compact',
+  wordingForMe: 'neutral',
+  vocabLevel: 3,
+  gridSize: 'standard',
+  pinSalt: undefined,
+  pinHash: undefined,
+  failedPinAttempts: 0,
+  pinLockUntil: 0,
+  tapToSpeak: 'after_say_it'
 };
 
 export async function getPreferences(): Promise<UserPreferences> {
   const prefs = await db.userPreferences.get('current');
-  if (prefs) return prefs;
+  if (prefs) return { ...DEFAULT_PREFERENCES, ...prefs };
   await db.userPreferences.put(DEFAULT_PREFERENCES);
   return DEFAULT_PREFERENCES;
 }
@@ -161,9 +242,58 @@ export async function deleteConversationThread(id: string): Promise<void> {
   await db.conversationThreads.delete(id);
 }
 
+// Custom Cards management (caregiver-friendly, strictly offline in IndexedDB)
+export async function getCustomCards(): Promise<CustomCardRecord[]> {
+  return await db.customCards.toArray();
+}
+
+export async function saveCustomCard(card: CustomCardRecord): Promise<void> {
+  await db.customCards.put(card);
+}
+
+export async function deleteCustomCard(id: string): Promise<void> {
+  await db.customCards.delete(id);
+}
+
+export async function exportBoardJson(): Promise<string> {
+  const prefs = await getPreferences();
+  const custom = await getCustomCards();
+  const exportPayload = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    preferences: {
+      vocabLevel: prefs.vocabLevel,
+      gridSize: prefs.gridSize,
+      screenDensity: prefs.screenDensity,
+      language: prefs.language,
+      userMode: prefs.userMode
+    },
+    customCards: custom
+  };
+  return JSON.stringify(exportPayload, null, 2);
+}
+
+export async function importBoardJson(jsonStr: string): Promise<number> {
+  const payload = JSON.parse(jsonStr);
+  let importedCount = 0;
+  if (payload.customCards && Array.isArray(payload.customCards)) {
+    for (const card of payload.customCards) {
+      if (card && card.id && card.labels) {
+        await db.customCards.put(card);
+        importedCount++;
+      }
+    }
+  }
+  if (payload.preferences) {
+    await savePreferences(payload.preferences);
+  }
+  return importedCount;
+}
+
 export async function clearAllUserData(): Promise<void> {
   await db.activityLogs.clear();
   await db.conversationThreads.clear();
+  await db.customCards.clear();
   await db.userPreferences.clear();
   await db.userPreferences.put(DEFAULT_PREFERENCES);
 }

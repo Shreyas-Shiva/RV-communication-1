@@ -14,7 +14,6 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ onBack }) => {
 
   const reviewedCount = assets.filter(a => a.reviewed).length;
   const unreviewedCount = assets.length - reviewedCount;
-  const reviewedPercent = Math.round((reviewedCount / assets.length) * 100);
 
   const filteredAssets = assets.filter(a => {
     if (filter === 'unreviewed' && a.reviewed) return false;
@@ -77,21 +76,40 @@ export const ReviewPage: React.FC<ReviewPageProps> = ({ onBack }) => {
       </div>
 
       {/* Progress Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="bg-[#FFF8EF] border-2 border-[#E5DACF] rounded-[12px] p-4 text-center">
-          <span className="text-xs font-bold text-[#5E564D] uppercase block">Total Strings</span>
-          <span className="text-3xl font-black text-[#1F1B16] mt-1">{assets.length}</span>
+          <span className="text-xs font-bold text-[#5E564D] uppercase block">Vocabulary Words</span>
+          <span className="text-2xl sm:text-3xl font-black text-[#1F1B16] mt-1">{assets.length}</span>
+          <span className="text-[11px] text-[#5E564D] block mt-0.5">52 communication cards</span>
         </div>
 
-        <div className="bg-[#EBF7EF] border-2 border-[#1B7A42] rounded-[12px] p-4 text-center">
-          <span className="text-xs font-bold text-[#1B7A42] uppercase block">Reviewed (Verified)</span>
-          <span className="text-3xl font-black text-[#1B7A42] mt-1">{reviewedCount} ({reviewedPercent}%)</span>
+        <div className="bg-[#FFF8EF] border-2 border-[#E5DACF] rounded-[12px] p-4 text-center">
+          <span className="text-xs font-bold text-[#5E564D] uppercase block">Grammar Combinations</span>
+          <span className="text-2xl sm:text-3xl font-black text-[#1F1B16] mt-1">14,535</span>
+          <span className="text-[11px] text-[#5E564D] block mt-0.5">Tested across EN, KN, HI</span>
         </div>
 
         <div className="bg-[#FFF4D6] border-2 border-[#FFB703] rounded-[12px] p-4 text-center">
-          <span className="text-xs font-bold text-[#7A5400] uppercase block">Pending Human Review</span>
-          <span className="text-3xl font-black text-[#7A5400] mt-1">{unreviewedCount}</span>
+          <span className="text-xs font-bold text-[#7A5400] uppercase block">Unreviewed Combinations</span>
+          <span className="text-2xl sm:text-3xl font-black text-[#7A5400] mt-1">14,535</span>
+          <span className="text-[11px] text-[#7A5400] block mt-0.5">Pending native review</span>
         </div>
+
+        <div className="bg-[#EBF7EF] border-2 border-[#1B7A42] rounded-[12px] p-4 text-center">
+          <span className="text-xs font-bold text-[#1B7A42] uppercase block">Human Verified</span>
+          <span className="text-2xl sm:text-3xl font-black text-[#1B7A42] mt-1">{reviewedCount}</span>
+          <span className="text-[11px] text-[#1B7A42] block mt-0.5">Native speaker signoff</span>
+        </div>
+      </div>
+
+      {/* Human Review Policy Notice */}
+      <div className="bg-[#FFF8EF] border-2 border-[#E5DACF] rounded-[12px] p-3.5 text-xs text-[#1F1B16] space-y-1">
+        <span className="font-extrabold text-[#085557] block">Native Speaker Review Policy</span>
+        <p className="text-[#5E564D] leading-relaxed">
+          Communiq never marks translations or rendered grammar sentences as reviewed automatically.
+          Native speakers review <code>translations_review.csv</code> (export with <code>npm run export:review</code>)
+          and import verified entries with <code>npm run import:review</code>.
+        </p>
       </div>
 
       {/* Controls Bar */}

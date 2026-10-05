@@ -351,6 +351,150 @@ export async function predictConversationResponses(context: ConversationContextP
   };
 }
 
+export interface ChatTurnItem {
+  speaker: 'other' | 'user';
+  text: string;
+  timestamp?: number;
+}
+
+export interface ChatReplyOption {
+  id: string;
+  text: string;
+  pictogramKeyword: string;
+  intent: string;
+  sensitive: boolean;
+  source: string;
+  grammarChecked: boolean;
+}
+
+export interface ChatRepliesResult {
+  questionClass: string;
+  replies: ChatReplyOption[];
+  provider: string;
+  cached: boolean;
+  safetyTriggered: boolean;
+}
+
+export async function fetchChatReplies(payload: {
+  language: string;
+  ageGroup: UserMode;
+  tone?: 'short' | 'polite' | 'casual';
+  wording?: string;
+  role?: string;
+  turns: ChatTurnItem[];
+  hints?: string[];
+  enableAI?: boolean;
+}): Promise<ChatRepliesResult> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    const res = await fetch('/api/chat/replies', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        language: payload.language,
+        ageGroup: payload.ageGroup,
+        tone: payload.tone || 'polite',
+        wording: payload.wording || 'first_person',
+        role: payload.role || 'someone_else',
+        turns: payload.turns,
+        hints: payload.hints || [],
+        enableAI: payload.enableAI || false
+      }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.replies && data.replies.length > 0) {
+        return data;
+      }
+    }
+  } catch {
+    // Network offline or server error
+  }
+
+  // Fallback to local offline predictions
+  const offlineOptions = getLocalOfflinePredictions({
+    language: payload.language,
+    ageGroup: payload.ageGroup,
+    conversationId: 'offline',
+    messages: payload.turns.map(t => ({ speaker: t.speaker, text: t.text, time: t.timestamp || Date.now() })),
+    enableAI: false
+  });
+
+  return {
+    questionClass: 'fallback',
+    replies: offlineOptions.map((opt, idx) => ({
+      id: `fallback_${idx}`,
+      text: opt.spokenText,
+      pictogramKeyword: opt.pictogramKeyword,
+      intent: opt.intent,
+      sensitive: opt.sensitive,
+      source: 'offline_fallback',
+      grammarChecked: true
+    })),
+    provider: 'local_fallback',
+    cached: false,
+    safetyTriggered: false
+  };
+}
+
+export async function fetchChatStarters(
+  language: string,
+  ageGroup: UserMode,
+  tone: 'short' | 'polite' | 'casual' = 'polite'
+): Promise<ChatReplyOption[]> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    const res = await fetch('/api/chat/starters', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ language, ageGroup, tone }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.starters && data.starters.length > 0) {
+        return data.starters;
+      }
+    }
+  } catch {
+    // Fallback
+  }
+
+  if (language === 'kn') {
+    return [
+      { id: 'st_1', text: 'ನಮಸ್ಕಾರ!', pictogramKeyword: 'hello', intent: 'greet', sensitive: false, source: 'fallback', grammarChecked: true },
+      { id: 'st_2', text: 'ಕ್ಷಮಿಸಿ, ಕೇಳಬಹುದೇ?', pictogramKeyword: 'help', intent: 'question', sensitive: false, source: 'fallback', grammarChecked: true },
+      { id: 'st_3', text: 'ನಾನು ಒಂದು ಮಾತು ಹೇಳಬೇಕಿದೆ.', pictogramKeyword: 'chat', intent: 'state', sensitive: false, source: 'fallback', grammarChecked: true },
+      { id: 'st_4', text: 'ನೀವು ಹೇಗಿದ್ದೀರಿ?', pictogramKeyword: 'happy', intent: 'question', sensitive: false, source: 'fallback', grammarChecked: true }
+    ];
+  }
+  if (language === 'hi') {
+    return [
+      { id: 'st_1', text: 'नमस्ते!', pictogramKeyword: 'hello', intent: 'greet', sensitive: false, source: 'fallback', grammarChecked: true },
+      { id: 'st_2', text: 'माफ़ कीजिए, क्या मैं कुछ पूछ सकता हूँ?', pictogramKeyword: 'help', intent: 'question', sensitive: false, source: 'fallback', grammarChecked: true },
+      { id: 'st_3', text: 'मुझे आपसे कुछ कहना है।', pictogramKeyword: 'chat', intent: 'state', sensitive: false, source: 'fallback', grammarChecked: true },
+      { id: 'st_4', text: 'आप कैसे हैं?', pictogramKeyword: 'happy', intent: 'question', sensitive: false, source: 'fallback', grammarChecked: true }
+    ];
+  }
+  return [
+    { id: 'st_1', text: 'Hello!', pictogramKeyword: 'hello', intent: 'greet', sensitive: false, source: 'fallback', grammarChecked: true },
+    { id: 'st_2', text: 'Excuse me, may I ask something?', pictogramKeyword: 'help', intent: 'question', sensitive: false, source: 'fallback', grammarChecked: true },
+    { id: 'st_3', text: 'I want to tell you something.', pictogramKeyword: 'chat', intent: 'state', sensitive: false, source: 'fallback', grammarChecked: true },
+    { id: 'st_4', text: 'How are you today?', pictogramKeyword: 'happy', intent: 'question', sensitive: false, source: 'fallback', grammarChecked: true }
+  ];
+}
+
 export async function improveUserText(text: string, language: string, userMode: UserMode): Promise<string> {
   if (!text || text.trim() === '') return text;
 
@@ -412,6 +556,163 @@ export async function fetchServiceStatus(): Promise<ServiceStatus> {
     speechRecognition: 'working',
     whisper: 'not_configured',
     activeProvider: 'local_fallback'
+  };
+}
+
+export interface SentenceOption {
+  text: string;
+  intentId: string;
+  tone: string;
+  grammarChecked: boolean;
+  providerUsed: string;
+}
+
+export async function fetchSentenceOptions(params: {
+  assetId: string;
+  language: string;
+  userMode: UserMode;
+  tone?: string;
+  wording?: string;
+}): Promise<SentenceOption[]> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2500);
+
+    const res = await fetch('/api/ai/sentence-options', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        assetId: params.assetId,
+        language: params.language,
+        ageGroup: params.userMode === 'child' ? 'class_1_7' : params.userMode === 'student' ? 'class_8_12' : 'adult',
+        tone: params.tone || 'polite',
+        wording: params.wording || 'neutral'
+      }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.options)) {
+        return data.options;
+      }
+    }
+  } catch {
+    // Fall through silently without blocking the UI
+  }
+
+  return [];
+}
+
+export interface ContinueOptionItem {
+  text: string;
+  kind: string;
+  grammarChecked: boolean;
+  providerUsed: string;
+}
+
+export interface ContinueResult {
+  options: ContinueOptionItem[];
+  repairOptions: ContinueOptionItem[];
+  providerUsed: string;
+}
+
+export async function fetchContinueOptions(params: {
+  lastSentence: string;
+  language: string;
+  userMode: UserMode;
+  tone?: string;
+  wording?: string;
+  scenario?: string;
+}): Promise<ContinueResult> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2500);
+
+    const res = await fetch('/api/ai/continue', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        lastSentence: params.lastSentence,
+        language: params.language,
+        ageGroup: params.userMode === 'child' ? 'class_1_7' : params.userMode === 'student' ? 'class_8_12' : 'adult',
+        tone: params.tone || 'polite',
+        wording: params.wording || 'neutral',
+        scenario: params.scenario
+      }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      return {
+        options: data.options || [],
+        repairOptions: data.repairOptions || [],
+        providerUsed: data.providerUsed || 'local'
+      };
+    }
+  } catch {
+    // Fallback locally
+  }
+
+  const lang = params.language.toLowerCase();
+  const isKn = lang.includes('kn');
+  const isHi = lang.includes('hi');
+
+  if (isKn) {
+    return {
+      repairOptions: [
+        { text: 'ನಾನು ಹಾಗೆ ಹೇಳಲು ಉದ್ದೇಶಿಸಿರಲಿಲ್ಲ.', kind: 'repair', grammarChecked: true, providerUsed: 'local' },
+        { text: 'ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ.', kind: 'repair', grammarChecked: true, providerUsed: 'local' },
+        { text: 'ನಾನು ಇನ್ನೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸುತ್ತೇನೆ.', kind: 'repair', grammarChecked: true, providerUsed: 'local' },
+        { text: 'ನಾನು ಹೇಳಲು ಬಯಸಿದ್ದು ಅದಲ್ಲ.', kind: 'repair', grammarChecked: true, providerUsed: 'local' }
+      ],
+      options: [
+        { text: 'ಇದರ ಬಗ್ಗೆ ಇನ್ನಷ್ಟು ಹೇಳಿ.', kind: 'detail', grammarChecked: true, providerUsed: 'local' },
+        { text: 'ಧನ್ಯವಾದಗಳು.', kind: 'close', grammarChecked: true, providerUsed: 'local' },
+        { text: 'ಅಷ್ಟೇ.', kind: 'close', grammarChecked: true, providerUsed: 'local' },
+        { text: 'ಸರಿ.', kind: 'close', grammarChecked: true, providerUsed: 'local' }
+      ],
+      providerUsed: 'local'
+    };
+  }
+
+  if (isHi) {
+    return {
+      repairOptions: [
+        { text: 'मेरा यह मतलब नहीं था।', kind: 'repair', grammarChecked: true, providerUsed: 'local' },
+        { text: 'कृपया थोड़ा इंतज़ार करें।', kind: 'repair', grammarChecked: true, providerUsed: 'local' },
+        { text: 'मुझे फिर से कोशिश करने दें।', kind: 'repair', grammarChecked: true, providerUsed: 'local' },
+        { text: 'मैं यह नहीं कहना चाहता था।', kind: 'repair', grammarChecked: true, providerUsed: 'local' }
+      ],
+      options: [
+        { text: 'इसके बारे में और बताएं।', kind: 'detail', grammarChecked: true, providerUsed: 'local' },
+        { text: 'धन्यवाद।', kind: 'close', grammarChecked: true, providerUsed: 'local' },
+        { text: 'बस इतना ही।', kind: 'close', grammarChecked: true, providerUsed: 'local' },
+        { text: 'ठीक है।', kind: 'close', grammarChecked: true, providerUsed: 'local' }
+      ],
+      providerUsed: 'local'
+    };
+  }
+
+  return {
+    repairOptions: [
+      { text: 'I did not mean that.', kind: 'repair', grammarChecked: true, providerUsed: 'local' },
+      { text: 'Please wait.', kind: 'repair', grammarChecked: true, providerUsed: 'local' },
+      { text: 'Let me try again.', kind: 'repair', providerUsed: 'local', grammarChecked: true },
+      { text: 'That is not what I wanted to say.', kind: 'repair', providerUsed: 'local', grammarChecked: true }
+    ],
+    options: [
+      { text: 'Tell me more about this.', kind: 'detail', grammarChecked: true, providerUsed: 'local' },
+      { text: 'Thank you.', kind: 'close', grammarChecked: true, providerUsed: 'local' },
+      { text: 'That is all.', kind: 'close', grammarChecked: true, providerUsed: 'local' },
+      { text: 'Okay.', kind: 'close', grammarChecked: true, providerUsed: 'local' }
+    ],
+    providerUsed: 'local'
   };
 }
 

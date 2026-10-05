@@ -16,13 +16,17 @@ from app.config.settings import settings
 logger = logging.getLogger("communiq.sign")
 
 SIGN_VOCABULARY = {
-    "hello": {"en": "Hello", "kn": "ನಮಸ್ಕಾರ", "hi": "नमस्ते"},
-    "yes": {"en": "Yes", "kn": "ಹೌದು", "hi": "हाँ"},
-    "no": {"en": "No", "kn": "ಇಲ್ಲ", "hi": "नहीं"},
-    "thank_you": {"en": "Thank you", "kn": "ಧನ್ಯವಾದ", "hi": "धन्यवाद"},
-    "help": {"en": "Help", "kn": "ಸಹಾಯ", "hi": "मदद"},
-    "water": {"en": "Water", "kn": "ನೀರು", "hi": "पानी"},
-    "please": {"en": "Please", "kn": "ದಯವಿಟ್ಟು", "hi": "कृपया"}
+    "water": {"en": "I need water", "kn": "ನನಗೆ ನೀರು ಬೇಕು", "hi": "मुझे पानी चाहिए", "label": "Water"},
+    "food": {"en": "I want food", "kn": "ನನಗೆ ಆಹಾರ ಬೇಕು", "hi": "मुझे खाना चाहिए", "label": "Food"},
+    "help": {"en": "I need help", "kn": "ನನಗೆ ಸಹಾಯ ಬೇಕು", "hi": "मुझे मदद चाहिए", "label": "Help"},
+    "yes": {"en": "Yes", "kn": "ಹೌದು", "hi": "हाँ", "label": "Yes"},
+    "no": {"en": "No", "kn": "ಇಲ್ಲ", "hi": "नहीं", "label": "No"},
+    "bathroom": {"en": "I need the bathroom", "kn": "ನನಗೆ ಶೌಚಾಲಯ ಬೇಕು", "hi": "मुझे शौचालय जाना है", "label": "Bathroom"},
+    "want": {"en": "I want this", "kn": "ನನಗೆ ಇದು ಬೇಕು", "hi": "मुझे यह चाहिए", "label": "Want"},
+    "go": {"en": "Let's go", "kn": "ಹೋಗೋಣ", "hi": "चलो चलें", "label": "Go"},
+    "hello": {"en": "Hello", "kn": "ನಮಸ್ಕಾರ", "hi": "नमस्ते", "label": "Hello"},
+    "thank_you": {"en": "Thank you", "kn": "ಧನ್ಯವಾದ", "hi": "धन्यवाद", "label": "Thank You"},
+    "please": {"en": "Please", "kn": "ದಯವಿಟ್ಟು", "hi": "कृपया", "label": "Please"}
 }
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "sign_model.json")

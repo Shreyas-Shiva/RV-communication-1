@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useCommuniq } from './hooks/useCommuniq';
 import { Header } from './components/Header';
-import { Navigation, ScreenId } from './components/Navigation';
-import { QuickNeedsBar } from './components/QuickNeedsBar';
+import { ScreenId } from './components/Navigation';
 import { EmergencyModal } from './components/EmergencyModal';
+import { GrownUpsModal } from './components/GrownUpsModal';
 import { MissingVoiceBanner } from './components/MissingVoiceBanner';
-import { OnboardingFlow } from './components/OnboardingFlow';
+import { AgeProfileModal } from './components/AgeProfileModal';
 
-import { HomePage } from './pages/HomePage';
+import { ChatPage } from './pages/ChatPage';
 import { CommunicatePage } from './pages/CommunicatePage';
-import { TalkPage } from './pages/TalkPage';
 import { PracticePage } from './pages/PracticePage';
 import { MyDayPage } from './pages/MyDayPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -25,11 +24,10 @@ import { ReviewPage } from './pages/ReviewPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 function getInitialScreen(): ScreenId {
-  if (typeof window === 'undefined') return 'home';
+  if (typeof window === 'undefined') return 'talk';
   const path = window.location.pathname.replace(/^\//, '').toLowerCase();
-  if (path === '' || path === 'home') return 'home';
-  if (path === 'communicate') return 'communicate';
-  if (path === 'talk') return 'talk';
+  if (path === '' || path === 'chat' || path === 'talk' || path === 'home') return 'talk';
+  if (path === 'board' || path === 'communicate') return 'communicate';
   if (path === 'practice') return 'practice';
   if (path === 'myday') return 'myDay';
   if (path === 'settings') return 'settings';
@@ -46,22 +44,24 @@ function getInitialScreen(): ScreenId {
 }
 
 export function App() {
-  const { preferences, userMode, t } = useCommuniq();
+  const { preferences, t } = useCommuniq();
   const [currentScreen, setCurrentScreen] = useState<ScreenId>(getInitialScreen);
   const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState<boolean>(false);
-  const [communicateNavParams, setCommunicateNavParams] = useState<{ categoryId?: string; assetId?: string }>({});
+  const [isGrownUpsModalOpen, setIsGrownUpsModalOpen] = useState<boolean>(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
 
   // Sync navigation with browser URL history without reloading
   const navigateTo = (screen: ScreenId) => {
     setCurrentScreen(screen);
     let newPath = '/';
-    if (screen === 'home') newPath = '/';
+    if (screen === 'talk' || screen === 'home') newPath = '/chat';
+    else if (screen === 'communicate') newPath = '/board';
     else if (screen === 'signLab') newPath = '/dev/sign-samples';
     else if (screen === 'review') newPath = '/dev/review';
     else if (screen === '404') newPath = '/404';
     else newPath = `/${screen}`;
 
-    if (window.location.pathname !== newPath) {
+    if (window.location.pathname !== newPath && window.location.pathname !== '/' && (window.location.pathname !== '/chat' || newPath !== '/chat')) {
       window.history.pushState(null, '', newPath);
     }
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -75,12 +75,14 @@ export function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // First run check: Open directly into Language and Age Selection
+  // First run check: Open directly into Welcome Profile Modal
   if (!preferences.onboardingCompleted) {
     return (
-      <OnboardingFlow
-        onComplete={() => {
-          navigateTo('home');
+      <AgeProfileModal
+        isOpen={true}
+        isFirstLaunch={true}
+        onClose={() => {
+          navigateTo('talk');
         }}
       />
     );
@@ -89,28 +91,28 @@ export function App() {
   // Compute helper line based on current screen
   const screenMeta: Record<ScreenId, { title: string; helper: string }> = {
     home: {
-      title: t.home,
-      helper: userMode === 'child' ? t.helperWhatShouldITap : userMode === 'student' ? t.helperWhatCanISay : t.helperWhereAmI
-    },
-    communicate: {
-      title: t.communicate,
-      helper: t.helperWhatShouldITap
+      title: "Chat",
+      helper: "Type what they said, or tap a reply."
     },
     talk: {
-      title: t.talk,
-      helper: t.talkWithSomeoneDesc
+      title: "Chat",
+      helper: "Type what they said, or tap a reply."
+    },
+    communicate: {
+      title: "Board",
+      helper: t.communicateInstruction || "Tap pictures to build a sentence."
     },
     practice: {
-      title: t.practice,
-      helper: t.helperWhatCanISay
+      title: t.practice || "Practice",
+      helper: t.practiceInstruction || "Practice words and sentences at your own pace."
     },
     myDay: {
-      title: t.myDay,
-      helper: t.myDayDesc
+      title: t.myDay || "My Day",
+      helper: t.myDayInstruction || "Review what you said and did today."
     },
     settings: {
-      title: t.settings,
-      helper: t.settingsDesc
+      title: t.settings || "Settings",
+      helper: t.settingsInstruction || "Adjust voices, display, and privacy."
     },
     about: {
       title: "About COMMUNIQ",
@@ -137,11 +139,11 @@ export function App() {
       helper: "Native speaker translation verification."
     },
     privacy: {
-      title: t.privacy,
+      title: t.privacy || "Privacy Policy",
       helper: "Your offline and data rights."
     },
     terms: {
-      title: t.terms,
+      title: t.terms || "Terms of Use",
       helper: "Terms of service and ARASAAC attribution."
     },
     design: {
@@ -154,194 +156,103 @@ export function App() {
     }
   };
 
-  const handleNavigateToCommunicateWithItem = (categoryId?: string, assetId?: string) => {
-    setCommunicateNavParams({ categoryId, assetId });
-    navigateTo('communicate');
-  };
+  const isMainSpace = currentScreen === 'talk' || currentScreen === 'communicate' || currentScreen === 'home';
 
   return (
-    <div className="min-h-screen bg-[#FFF8EF] text-[#1F1B16] flex flex-col selection:bg-[#0A6C6E] selection:text-white">
-      {/* Universal Top Header */}
+    <div className="h-screen max-h-screen bg-[#FFF8EF] text-[#1F1B16] flex flex-col overflow-hidden selection:bg-[#0A6C6E] selection:text-white">
+      {/* Universal Top Header (<= 48px height) */}
       <Header
-        currentScreenName={screenMeta[currentScreen]?.title || t.home}
+        currentScreen={currentScreen}
+        currentScreenName={screenMeta[currentScreen]?.title || 'Chat'}
         helperLine={screenMeta[currentScreen]?.helper}
+        onNavigate={navigateTo}
         onOpenSettings={() => navigateTo('settings')}
+        onOpenProfileModal={() => setIsProfileModalOpen(true)}
         onOpenEmergency={() => setIsEmergencyModalOpen(true)}
-        onNavigateHome={() => navigateTo('home')}
       />
 
-      {/* Main layout container with responsive desktop sidebar */}
-      <div className="flex-1 flex max-w-7xl w-full mx-auto">
-        <Navigation
-          currentScreen={currentScreen}
-          onNavigate={(scr) => {
-            if (scr === 'communicate') {
-              setCommunicateNavParams({});
-            }
-            navigateTo(scr);
-          }}
-        />
-
-        <main className="flex-1 p-4 sm:p-6 md:p-8 min-w-0">
-          {/* Missing Voice Warning Banner */}
-          <MissingVoiceBanner />
+      {/* Main layout container with ZERO vertical page scroll on Chat & Board */}
+      <div className="flex-1 flex flex-col w-full h-[calc(100vh-48px)] max-h-[calc(100vh-48px)] overflow-hidden">
+        <main
+          className={`flex-1 w-full h-full overflow-hidden ${
+            isMainSpace
+              ? 'p-0'
+              : 'p-4 sm:p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto'
+          }`}
+        >
+          {/* Missing Voice Warning Banner for auxiliary screens */}
+          {!isMainSpace && <MissingVoiceBanner />}
 
           {/* Active Screen View */}
-          {currentScreen === 'home' && (
-            <HomePage
-              onNavigateToCommunicate={handleNavigateToCommunicateWithItem}
-              onNavigateToTalk={() => navigateTo('talk')}
+          {(currentScreen === 'talk' || currentScreen === 'home') && (
+            <ChatPage
+              onNavigateToBoard={() => navigateTo('communicate')}
+              onOpenEmergency={() => setIsEmergencyModalOpen(true)}
+              onOpenSettings={() => navigateTo('settings')}
             />
           )}
 
           {currentScreen === 'communicate' && (
-            <CommunicatePage
-              initialCategoryId={communicateNavParams.categoryId || 'food_drink'}
-              initialAssetId={communicateNavParams.assetId}
+            <CommunicatePage initialCategoryId="all" />
+          )}
+
+          {currentScreen === 'practice' && <PracticePage />}
+          {currentScreen === 'myDay' && <MyDayPage />}
+          {currentScreen === 'settings' && (
+            <SettingsPage
+              onBack={() => navigateTo('talk')}
+              onOpenGrownUps={() => setIsGrownUpsModalOpen(true)}
+              onOpenProfileModal={() => setIsProfileModalOpen(true)}
             />
           )}
-
-          {currentScreen === 'talk' && (
-            <TalkPage onNavigateToTab={(tab) => navigateTo(tab as ScreenId)} />
-          )}
-
-          {currentScreen === 'practice' && (
-            <PracticePage />
-          )}
-
-          {currentScreen === 'myDay' && (
-            <MyDayPage />
-          )}
-
-          {currentScreen === 'settings' && (
-            <SettingsPage />
-          )}
-
-          {currentScreen === 'about' && (
-            <AboutPage onBack={() => navigateTo('home')} />
-          )}
-
-          {currentScreen === 'help' && (
-            <HelpPage onBack={() => navigateTo('home')} />
-          )}
-
-          {currentScreen === 'accessibility' && (
-            <AccessibilityPage onBack={() => navigateTo('home')} />
-          )}
-
-          {currentScreen === 'contact' && (
-            <ContactPage onBack={() => navigateTo('home')} />
-          )}
-
-          {currentScreen === 'signLab' && (
-            <SignLabPage />
-          )}
-
-          {currentScreen === 'review' && (
-            <ReviewPage onBack={() => navigateTo('home')} />
-          )}
-
-          {currentScreen === 'privacy' && (
-            <PrivacyPage onBack={() => navigateTo('home')} />
-          )}
-
-          {currentScreen === 'terms' && (
-            <TermsPage onBack={() => navigateTo('home')} />
-          )}
-
-          {currentScreen === 'design' && (
-            <DesignShowcasePage onBack={() => navigateTo('home')} />
-          )}
-
+          {currentScreen === 'about' && <AboutPage onBack={() => navigateTo('talk')} />}
+          {currentScreen === 'help' && <HelpPage onBack={() => navigateTo('talk')} />}
+          {currentScreen === 'accessibility' && <AccessibilityPage onBack={() => navigateTo('talk')} />}
+          {currentScreen === 'contact' && <ContactPage onBack={() => navigateTo('talk')} />}
+          {currentScreen === 'signLab' && <SignLabPage />}
+          {currentScreen === 'review' && <ReviewPage onBack={() => navigateTo('talk')} />}
+          {currentScreen === 'privacy' && <PrivacyPage onBack={() => navigateTo('talk')} />}
+          {currentScreen === 'terms' && <TermsPage onBack={() => navigateTo('talk')} />}
+          {currentScreen === 'design' && <DesignShowcasePage onBack={() => navigateTo('talk')} />}
           {currentScreen === '404' && (
             <NotFoundPage
-              onNavigateHome={() => navigateTo('home')}
-              onNavigateCommunicate={() => navigateTo('communicate')}
+              onNavigateHome={() => navigateTo('talk')}
+              onNavigateCommunicate={() => navigateTo('talk')}
               onNavigateHelp={() => navigateTo('help')}
             />
+          )}
+
+          {/* Footer on scrollable auxiliary pages */}
+          {!isMainSpace && (
+            <footer className="mt-12 pt-6 border-t-2 border-[#E5DACF] text-xs text-[#5E564D] pb-12">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="font-extrabold text-sm text-[#0A6C6E]">COMMUNIQ</span>
+                  <span>•</span>
+                  <span>{t.tagline}</span>
+                </div>
+                <p className="text-[11px] leading-tight text-[#5E564D] max-w-sm sm:text-right">
+                  Pictographic symbols belong to the Government of Aragon, created by Sergio Palao for ARASAAC (http://www.arasaac.org), licensed under CC (BY-NC-SA) non-commercial.
+                </p>
+              </div>
+            </footer>
           )}
         </main>
       </div>
 
-      {/* Child mode permanent bottom Quick Needs bar */}
-      {userMode === 'child' && (
-        <QuickNeedsBar />
-      )}
-
-      {/* Emergency modal */}
+      {/* Emergency & Grown-Ups & Profile Modals */}
       <EmergencyModal
         isOpen={isEmergencyModalOpen}
         onClose={() => setIsEmergencyModalOpen(false)}
       />
-
-      {/* Global clean footer */}
-      <footer className={`bg-white border-t-2 border-[#E5DACF] p-5 text-center text-xs text-[#5E564D] ${
-        userMode === 'child' ? 'mb-[160px] md:mb-0' : 'mb-[64px] md:mb-0'
-      }`}>
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="font-extrabold text-sm text-[#0A6C6E]">COMMUNIQ</span>
-            <span>•</span>
-            <span>{t.tagline}</span>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 font-bold">
-            <button
-              type="button"
-              onClick={() => navigateTo('about')}
-              className="hover:underline hover:text-[#0A6C6E]"
-            >
-              About
-            </button>
-            <button
-              type="button"
-              onClick={() => navigateTo('help')}
-              className="hover:underline hover:text-[#0A6C6E]"
-            >
-              Help
-            </button>
-            <button
-              type="button"
-              onClick={() => navigateTo('accessibility')}
-              className="hover:underline hover:text-[#0A6C6E]"
-            >
-              Accessibility
-            </button>
-            <button
-              type="button"
-              onClick={() => navigateTo('contact')}
-              className="hover:underline hover:text-[#0A6C6E]"
-            >
-              Contact
-            </button>
-            <button
-              type="button"
-              onClick={() => navigateTo('privacy')}
-              className="hover:underline hover:text-[#0A6C6E]"
-            >
-              {t.privacy}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigateTo('terms')}
-              className="hover:underline hover:text-[#0A6C6E]"
-            >
-              {t.terms}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigateTo('design')}
-              className="hover:underline hover:text-[#0A6C6E]"
-            >
-              Design Gallery
-            </button>
-          </div>
-
-          <p className="text-[11px] leading-tight text-[#5E564D] max-w-sm sm:text-right">
-            Pictographic symbols used are property of Aragon Government and created by Sergio Palao for ARASAAC (http://www.arasaac.org), licensed under CC (BY-NC-SA).
-          </p>
-        </div>
-      </footer>
+      <GrownUpsModal
+        isOpen={isGrownUpsModalOpen}
+        onClose={() => setIsGrownUpsModalOpen(false)}
+      />
+      <AgeProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+      />
     </div>
   );
 }

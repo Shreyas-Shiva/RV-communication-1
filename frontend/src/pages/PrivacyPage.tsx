@@ -52,6 +52,9 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onBack }) => {
             <li>Spoken phrases and timestamps: Saved locally to construct your personal "My Day" activity record.</li>
             <li>Two-way conversation threads: Maintained on-device so you can review previous dialogs.</li>
             <li>Interface preferences: Language selection, font sizes, contrast presets, and audio preferences remain on your device.</li>
+            <li>Grown-ups PIN: Stored only as a salted cryptographic hash on your device. It only prevents accidental changes by a child and is not strong security. To reset if forgotten, clear app data in your browser settings.</li>
+            <li>Local learning: Tapped replies are counted locally on device to suggest your most useful phrases first. You can reset what Communiq has learned at any time in Settings.</li>
+            <li>Custom cards and photos: Kept exclusively on this device in local storage and never transmitted.</li>
             <li>Reward stars and streaks: Tracked locally without external profiling or user telemetry.</li>
           </ul>
         </section>

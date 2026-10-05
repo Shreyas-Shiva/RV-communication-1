@@ -11,7 +11,6 @@ import {
   SunMoon,
   Contrast,
   Sliders,
-  Bell,
   Sparkles,
   Shield,
   Server,
@@ -22,7 +21,17 @@ import {
   Cpu
 } from 'lucide-react';
 
-export const SettingsPage: React.FC = () => {
+interface SettingsPageProps {
+  onBack?: () => void;
+  onOpenGrownUps?: () => void;
+  onOpenProfileModal?: () => void;
+}
+
+export const SettingsPage: React.FC<SettingsPageProps> = ({
+  onBack,
+  onOpenGrownUps,
+  onOpenProfileModal
+}) => {
   const {
     language,
     setLanguage,
@@ -108,11 +117,22 @@ export const SettingsPage: React.FC = () => {
   return (
     <div className="space-y-8 pb-24 max-w-4xl mx-auto">
       {/* Settings Header */}
-      <div className="bg-white border-2 border-[#E5DACF] rounded-[16px] p-6 shadow-sm">
-        <h2 className="text-3xl font-black text-[#1F1B16]">{t.settingsTitle}</h2>
-        <p className="text-base font-semibold text-[#085557] mt-1">
-          {t.settingsDesc}
-        </p>
+      <div className="bg-white border-2 border-[#E5DACF] rounded-[16px] p-6 shadow-sm flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-black text-[#1F1B16]">{t.settingsTitle}</h2>
+          <p className="text-base font-semibold text-[#085557] mt-1">
+            {t.settingsDesc}
+          </p>
+        </div>
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="h-10 px-4 rounded-[10px] bg-[#E2F3F3] border-2 border-[#0A6C6E] text-[#085557] font-black text-sm hover:bg-[#D0EDED] cursor-pointer active:scale-95 shrink-0"
+          >
+            Back to Chat
+          </button>
+        )}
       </div>
 
       {/* 1. Language Selection */}
@@ -148,9 +168,20 @@ export const SettingsPage: React.FC = () => {
 
       {/* 2. Interface Mode */}
       <section className="bg-white border-2 border-[#E5DACF] rounded-[16px] p-6 space-y-4">
-        <div className="flex items-center gap-2.5">
-          <Users className="w-6 h-6 text-[#0A6C6E]" />
-          <h3 className="text-xl font-black text-[#1F1B16]">{t.userModeSection}</h3>
+        <div className="flex items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2.5">
+            <Users className="w-6 h-6 text-[#0A6C6E]" />
+            <h3 className="text-xl font-black text-[#1F1B16]">{t.userModeSection}</h3>
+          </div>
+          {onOpenProfileModal && (
+            <button
+              type="button"
+              onClick={onOpenProfileModal}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#E2F3F3] text-[#0A6C6E] text-xs font-black hover:bg-[#D3EFEF] transition-all cursor-pointer"
+            >
+              <span>Switch Profile</span>
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -195,6 +226,29 @@ export const SettingsPage: React.FC = () => {
             </label>
           </div>
         )}
+      </section>
+
+      {/* 3. Caregiver & Grown-ups Area */}
+      <section className="bg-white border-2 border-[#E5DACF] rounded-[16px] p-6 space-y-4">
+        <div className="flex items-center gap-2.5">
+          <Shield className="w-6 h-6 text-[#0A6C6E]" />
+          <div>
+            <h3 className="text-xl font-black text-[#1F1B16]">Grown-ups & Caregiver Settings</h3>
+            <p className="text-xs font-semibold text-[#5E564D]">
+              PIN protection to prevent accidental changes to vocabulary, voices, or settings by a child.
+            </p>
+          </div>
+        </div>
+        <div className="pt-1">
+          <Button
+            variant="primary"
+            size="normal"
+            onClick={() => onOpenGrownUps?.()}
+            icon={<Shield className="w-4 h-4" />}
+          >
+            Unlock Grown-ups Settings
+          </Button>
+        </div>
       </section>
 
       {/* 3. AI Suggestions and Privacy Controls */}
@@ -439,6 +493,21 @@ export const SettingsPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Speak the word when I tap a picture */}
+        <div className="pt-3 border-t border-[#E5DACF] flex items-center justify-between gap-4">
+          <div>
+            <span className="block text-base font-bold text-[#1F1B16]">{t.speakOnTapLabel}</span>
+            <span className="block text-xs text-[#5E564D]">{t.speakOnTapDesc}</span>
+          </div>
+          <input
+            type="checkbox"
+            checked={preferences.speakOnTap}
+            onChange={(e) => updatePreferences({ speakOnTap: e.target.checked })}
+            className="w-6 h-6 rounded-[6px] accent-[#0A6C6E] cursor-pointer shrink-0"
+            aria-label={t.speakOnTapLabel}
+          />
+        </div>
+
         {/* Platform Guides for Installing Offline Natural Voices */}
         <div className="bg-[#FFF8EF] border-2 border-[#E5DACF] rounded-[14px] p-4 space-y-3 mt-4">
           <h4 className="font-extrabold text-sm text-[#1F1B16]">
@@ -539,22 +608,102 @@ export const SettingsPage: React.FC = () => {
             />
           </div>
 
-          {/* Sound Feedback */}
-          <div className="pt-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Bell className="w-5 h-5 text-[#5E564D]" />
-              <div>
-                <span className="block text-base font-bold text-[#1F1B16]">{t.soundEffects}</span>
-                <span className="block text-xs text-[#5E564D]">Gentle acoustic pop on card taps</span>
-              </div>
+          {/* Tap to Speak */}
+          <div className="pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <span className="block text-base font-bold text-[#1F1B16]">Tap to Speak</span>
+              <span className="block text-xs text-[#5E564D]">Choose whether cards and replies speak immediately or wait for the Say it button</span>
             </div>
-            <input
-              type="checkbox"
-              checked={preferences.soundEffects}
-              onChange={(e) => updatePreferences({ soundEffects: e.target.checked })}
-              className="w-6 h-6 rounded-[6px] accent-[#0A6C6E]"
-              aria-label={t.soundEffects}
-            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => updatePreferences({ tapToSpeak: 'instant' })}
+                className={`px-3 py-1.5 rounded-[8px] text-xs font-bold border-2 cursor-pointer ${
+                  preferences.tapToSpeak === 'instant'
+                    ? 'bg-[#E2F3F3] border-[#0A6C6E] text-[#0A6C6E]'
+                    : 'bg-white border-[#E5DACF] text-[#5E564D]'
+                }`}
+              >
+                Instantly on tap
+              </button>
+              <button
+                type="button"
+                onClick={() => updatePreferences({ tapToSpeak: 'after_say_it' })}
+                className={`px-3 py-1.5 rounded-[8px] text-xs font-bold border-2 cursor-pointer ${
+                  preferences.tapToSpeak === 'after_say_it'
+                    ? 'bg-[#E2F3F3] border-[#0A6C6E] text-[#0A6C6E]'
+                    : 'bg-white border-[#E5DACF] text-[#5E564D]'
+                }`}
+              >
+                After Say it
+              </button>
+            </div>
+          </div>
+
+          {/* Reset What Communiq Has Learned */}
+          <div className="pt-3 flex items-center justify-between">
+            <div>
+              <span className="block text-base font-bold text-[#1F1B16]">On-Device Learning</span>
+              <span className="block text-xs text-[#5E564D]">Reset phrase frequency counts stored on this device</span>
+            </div>
+            <Button
+              variant="secondary"
+              size="normal"
+              onClick={() => {
+                localStorage.removeItem('communiq_reply_counts');
+                alert('Reset what Communiq has learned.');
+              }}
+            >
+              Reset Learning
+            </Button>
+          </div>
+
+          {/* Screen Density */}
+          <div className="pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <span className="block text-base font-bold text-[#1F1B16]">{t.screenDensityLabel}</span>
+              <span className="block text-xs text-[#5E564D]">Adjust card grid density to view more items without scrolling</span>
+            </div>
+            <div className="flex gap-2">
+              {(['compact', 'comfortable', 'large'] as const).map((density) => (
+                <button
+                  key={density}
+                  type="button"
+                  onClick={() => updatePreferences({ screenDensity: density })}
+                  className={`h-9 px-3 rounded-[10px] border-2 font-bold text-xs capitalize transition-transform active:scale-95 ${
+                    preferences.screenDensity === density
+                      ? 'bg-[#0A6C6E] border-[#0A6C6E] text-white'
+                      : 'bg-white border-[#E5DACF] text-[#1F1B16] hover:border-[#0A6C6E]'
+                  }`}
+                >
+                  {density === 'compact' ? t.densityCompact : density === 'comfortable' ? t.densityComfortable : t.densityLarge}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Wording for Me (Hindi Grammar Agreement) */}
+          <div className="pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <span className="block text-base font-bold text-[#1F1B16]">{t.wordingForMeLabel}</span>
+              <span className="block text-xs text-[#5E564D]">Sets first-person verb and adjective agreement for Hindi sentences</span>
+            </div>
+            <div className="flex gap-2">
+              {(['neutral', 'masculine', 'feminine'] as const).map((wording) => (
+                <button
+                  key={wording}
+                  type="button"
+                  onClick={() => updatePreferences({ wordingForMe: wording })}
+                  className={`h-9 px-3 rounded-[10px] border-2 font-bold text-xs transition-transform active:scale-95 ${
+                    preferences.wordingForMe === wording
+                      ? 'bg-[#0A6C6E] border-[#0A6C6E] text-white'
+                      : 'bg-white border-[#E5DACF] text-[#1F1B16] hover:border-[#0A6C6E]'
+                  }`}
+                >
+                  {wording === 'neutral' ? t.wordingNeutral : wording === 'masculine' ? t.wordingMasculine : t.wordingFeminine}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>

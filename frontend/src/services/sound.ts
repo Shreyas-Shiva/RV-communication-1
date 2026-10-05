@@ -1,11 +1,17 @@
+/**
+ * COMMUNIQ Audio Service
+ * Strict Calm Sound Architecture:
+ * - Zero interface sounds (no pops, clicks, or reward sounds).
+ * - Only allowed audio: Speech synthesis, deliberate user-activated "Get attention" chime, and voice tests.
+ */
 class SoundService {
+  public enabled: boolean = false;
   private audioCtx: AudioContext | null = null;
-  public enabled: boolean = true;
 
   private getContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
     if (!this.audioCtx) {
-      const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioCtxClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (AudioCtxClass) {
         this.audioCtx = new AudioCtxClass();
       }
@@ -17,49 +23,35 @@ class SoundService {
   }
 
   /**
-   * Gentle, soft acoustic pop sound for card tap feedback.
+   * Tap sounds are strictly disabled across all modes.
    */
   public playTap(): void {
-    if (!this.enabled) return;
-    const ctx = this.getContext();
-    if (!ctx) return;
-
-    try {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(440, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.08);
-
-      gain.gain.setValueAtTime(0.12, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.08);
-    } catch {
-      // Audio autoplay restrictions or errors handled gracefully
-    }
+    // Intentionally no-op: zero interface sounds on tap
   }
 
   /**
-   * Kind pleasant two-tone chime when a complete sentence is spoken or celebrated.
+   * Reward sounds are strictly disabled across all modes.
+   * Rewards are visual-only and quiet.
    */
   public playCelebration(): void {
-    if (!this.enabled) return;
+    // Intentionally no-op: rewards are visual only
+  }
+
+  /**
+   * Deliberate gentle two-tone chime played ONLY when the user intentionally
+   * presses the "Get attention" action in the Board right rail.
+   */
+  public playAttentionChime(): void {
     const ctx = this.getContext();
     if (!ctx) return;
 
     try {
-      const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+      const notes = [523.25, 659.25]; // C5, E5 gentle chime
       notes.forEach((freq, idx) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        const startTime = ctx.currentTime + idx * 0.07;
-        const duration = 0.2;
+        const startTime = ctx.currentTime + idx * 0.12;
+        const duration = 0.3;
 
         osc.type = 'sine';
         osc.frequency.setValueAtTime(freq, startTime);
@@ -74,7 +66,7 @@ class SoundService {
         osc.stop(startTime + duration);
       });
     } catch {
-      // Graceful fallback
+      // Audio context policy fallback
     }
   }
 }

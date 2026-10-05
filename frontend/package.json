@@ -11,6 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check:branding": "node ../scripts/check_branding.mjs",
+    "lint:lexicon": "node ../scripts/lint_lexicon.mjs",
+    "lint:grammar": "node ../scripts/lint_grammar.mjs",
     "check:keys": "node ../scripts/check_keys.mjs",
     "setup:models": "node ../scripts/setup_models.mjs",
     "setup:site": "node ../scripts/setup_site.mjs",

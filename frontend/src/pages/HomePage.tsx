@@ -5,7 +5,7 @@ import { Card } from '../components/Card';
 import { Pictogram } from '../components/Pictogram';
 import { MascotView } from '../components/MascotView';
 import { SpeakIndicator } from '../components/SpeakIndicator';
-import { CHILD_PLACES } from '../data/places';
+import { CHILD_PLACES, ADULT_SITUATIONS } from '../data/places';
 import { COMMUNICATION_ASSETS, CommunicationAsset } from '../data/assets';
 import { db, ActivityRecord } from '../services/db';
 import { MessageSquare, MessagesSquare, ArrowRight, Sparkles, Star } from 'lucide-react';
@@ -57,12 +57,8 @@ export const HomePage: React.FC<HomePageProps> = ({
     onNavigateToCommunicate(asset.categoryId, asset.id);
   };
 
-  // Helper lines for every mode
-  const helperText = userMode === 'child'
-    ? t.helperWhatShouldITap
-    : userMode === 'student'
-    ? t.helperWhatCanISay
-    : t.helperWhatHappensNext;
+  // Helper instruction
+  const helperText = t.homeInstruction;
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-16">
@@ -130,19 +126,31 @@ export const HomePage: React.FC<HomePageProps> = ({
             </div>
           </div>
 
-          {/* Illustrated Map of Places */}
+          {/* Illustrated Map of Places: Where are you? */}
           <div>
             <div className="flex items-center justify-between mb-3 px-1">
               <div>
-                <h2 className="text-2xl font-black text-[#1F1B16]">{t.placesMapTitle}</h2>
-                <p className="text-sm font-bold text-[#0A6C6E]">{t.placesMapDesc}</p>
+                <h2 className="text-2xl font-black text-[#1F1B16]">
+                  {language === 'kn' ? 'ನೀವು ಎಲ್ಲಿದ್ದೀರಿ?' : language === 'hi' ? 'आप कहाँ हैं?' : 'Where are you?'}
+                </h2>
+                <p className="text-sm font-bold text-[#0A6C6E]">
+                  {language === 'kn' ? 'ಒಂದು ಸ್ಥಳವನ್ನು ಆರಿಸಿ, ಅಲ್ಲಿ ಬಳಸುವ ಪದಗಳು ತೆರೆಯುತ್ತವೆ.' : language === 'hi' ? 'एक जगह चुनें, वहाँ इस्तेमाल होने वाले शब्द खुलेंगे।' : 'Tap a place to see words you can use there.'}
+                </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
               {CHILD_PLACES.map((place) => {
                 const placeTitle = place.labels[language === 'kn' ? 'kn' : language === 'hi' ? 'hi' : 'en'] || place.labels.en;
                 const placeDesc = place.desc[language === 'kn' ? 'kn' : language === 'hi' ? 'hi' : 'en'] || place.desc.en;
+                const placeIcon = place.id === 'kitchen' ? 'pizza'
+                  : place.id === 'home' ? 'home'
+                  : place.id === 'school' ? 'school'
+                  : place.id === 'playground' ? 'playground'
+                  : place.id === 'hospital' ? 'hospital'
+                  : place.id === 'shop' ? 'cart'
+                  : place.id === 'bus_stop' ? 'bus'
+                  : 'calm';
 
                 return (
                   <button
@@ -155,7 +163,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   >
                     <div className="flex items-center justify-between w-full">
                       <span className="w-10 h-10 rounded-[10px] bg-white border border-[#E5DACF] flex items-center justify-center text-[#1F1B16]">
-                        <Pictogram name={place.relatedCategory === 'food_drink' ? 'pizza' : place.relatedCategory === 'playing' ? 'ball' : place.relatedCategory === 'health' ? 'doctor' : 'home'} alt="" size={28} />
+                        <Pictogram name={placeIcon} alt="" size={28} />
                       </span>
                       <ArrowRight className="w-5 h-5 text-[#1F1B16]" />
                     </div>
@@ -255,7 +263,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               {t.adultGreeting}
             </h2>
             <p className="text-base text-[#5E564D] mt-1 font-semibold">
-              {t.helperWhereAmI} COMMUNIQ Home. {t.helperWhatShouldITap}
+              {t.homeInstruction}
             </p>
 
             {/* Two large main entries */}
@@ -314,6 +322,59 @@ export const HomePage: React.FC<HomePageProps> = ({
                   onClick={() => handleQuickSay(asset)}
                 />
               ))}
+            </div>
+          </div>
+
+          {/* Explore by situation tiles */}
+          <div>
+            <div className="mb-3 px-1">
+              <h2 className="text-xl sm:text-2xl font-black text-[#1F1B16]">
+                {language === 'kn' ? 'ಸಂದರ್ಭದ ಮೂಲಕ ಹುಡುಕಿ' : language === 'hi' ? 'स्थिति के अनुसार देखें' : 'Explore by situation'}
+              </h2>
+              <p className="text-xs sm:text-sm text-[#5E564D] font-medium">
+                {language === 'kn' ? 'ನಿಮ್ಮ ದಿನನಿತ್ಯದ ಸನ್ನಿವೇಶಕ್ಕೆ ಸೂಕ್ತವಾದ ಪದಗಳನ್ನು ಆರಿಸಿ.' : language === 'hi' ? 'अपनी स्थिति के अनुसार शब्दों का चुनाव करें।' : 'Choose a situation to open relevant words and phrases.'}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              {ADULT_SITUATIONS.map((sit) => {
+                const title = sit.labels[language === 'kn' ? 'kn' : language === 'hi' ? 'hi' : 'en'] || sit.labels.en;
+                const desc = sit.desc[language === 'kn' ? 'kn' : language === 'hi' ? 'hi' : 'en'] || sit.desc.en;
+                const icon = sit.id === 'dining' ? 'pizza'
+                  : sit.id === 'health' ? 'hospital'
+                  : sit.id === 'home_daily' ? 'home'
+                  : sit.id === 'errands' ? 'cart'
+                  : sit.id === 'transit' ? 'bus'
+                  : sit.id === 'mood' ? 'calm'
+                  : sit.id === 'community' ? 'friend'
+                  : 'more';
+
+                return (
+                  <button
+                    key={sit.id}
+                    type="button"
+                    onClick={() => onNavigateToCommunicate(sit.relatedCategory)}
+                    aria-label={`Open situation: ${title}`}
+                    style={{ backgroundColor: sit.color, borderColor: sit.borderColor }}
+                    className="min-h-[120px] rounded-[16px] border-2 p-4 text-left flex flex-col justify-between select-none cursor-pointer transition-transform duration-100 active:scale-95 focus-visible:outline focus-visible:outline-3 focus-visible:outline-[#0A6C6E]"
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span className="w-9 h-9 rounded-[10px] bg-white border border-[#E5DACF] flex items-center justify-center text-[#1F1B16]">
+                        <Pictogram name={icon} alt="" size={24} />
+                      </span>
+                      <ArrowRight className="w-4 h-4 text-[#1F1B16]" />
+                    </div>
+
+                    <div className="mt-2">
+                      <span className="block text-base sm:text-lg font-black text-[#1F1B16] leading-tight">
+                        {title}
+                      </span>
+                      <span className="block text-xs text-[#1F1B16] mt-0.5 font-semibold line-clamp-1">
+                        {desc}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

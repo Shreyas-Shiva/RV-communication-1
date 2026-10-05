@@ -27,3 +27,8 @@ yarn-debug.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# Archives and Scratch
+*.zip
+user_prompt_*.txt
+screenshots/
